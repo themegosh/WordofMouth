@@ -1,6 +1,8 @@
 package ca.dmdev.petritrebs.wom;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,6 +33,7 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Date;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -38,39 +41,30 @@ public class LoginActivity extends AppCompatActivity {
     AccessTokenTracker accessTokenTracker;
     AccessToken accessToken;
     ProfileTracker profileTracker;
-    TextView lblName;
-    TextView lblID;
-    TextView lblEmail;
-    TextView lblGender;
+
+    private static final String TAG = LoginActivity.class.getName();
+    private static final String SHARED_FACEBOOK_TOKEN = "FacebookToken";
+    private static String curToken;
+    private static Date curTokenExipre;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FacebookSdk.sdkInitialize(this.getApplicationContext());
-        callbackManager = CallbackManager.Factory.create();
-
+        FacebookSdk.sdkInitialize(this.getApplicationContext()); //set up facebook SDK before setContentView!
+        callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
 
-        lblName = (TextView) findViewById(R.id.lblName);
-        lblID = (TextView) findViewById(R.id.lblID);
-        lblEmail = (TextView) findViewById(R.id.lblEmail);
-        lblGender = (TextView) findViewById(R.id.lblGender);
-
-        Profile p;
-        if ((p = Profile.getCurrentProfile()) != null){
-            lblName.setText("Name: "+p.getName());
-            lblID.setText("ID: "+p.getId());
-            lblEmail.setText("Email: ");
-            lblGender.setText("Gender: ");
-            ((ProfilePictureView) findViewById(R.id.profilePicture)).setProfileId(p.getId());
-        }
+        // Restore preferences
+        //SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
+        //boolean silent = settings.getBoolean("silentMode", false);
 
         //there is no checking if the user is logged in yet
         Button btnLogin = (Button)findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onFblogin();
+                // Set permissions and try to login
+                LoginManager.getInstance().logInWithReadPermissions((Activity) v.getContext(), Arrays.asList("email", "public_profile", "user_friends"));
             }
         });
 
@@ -93,6 +87,56 @@ public class LoginActivity extends AppCompatActivity {
                     AccessToken currentAccessToken) {
                 // Set the access token using
                 // currentAccessToken when it's loaded or set.
+                if (currentAccessToken == null){
+                    Log.d(TAG, "onCurrentAccessTokenChanged: currentAccessToken == null");
+                }
+                else {
+                    Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
+                    curToken = currentAccessToken.getToken();
+                    curTokenExipre = currentAccessToken.getExpires();
+
+                    //set up graph request
+                    GraphRequest request = GraphRequest.newMeRequest(
+                            currentAccessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
+                                @Override
+                                public void onCompleted(JSONObject json, GraphResponse response) {
+                                    if (response.getError() != null) {
+                                        // handle error
+                                        Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
+                                    } else {
+                                        Log.d(TAG, "onCompleted Success");
+                                        Log.d(TAG, "Response: " + response.toString());
+                                        Bundle loginData = getFacebookData(json);
+                                        Log.d(TAG, "Bundle: " + loginData.toString());
+
+                                        ///todo: Add/update login info from bFacebookData
+
+                                        ///todo: get friends list
+
+                                        /*new GraphRequest(
+                                                AccessToken.getCurrentAccessToken(),
+                                                "/"+bFacebookData.getString("id")+"/friendlists",
+                                                null,
+                                                HttpMethod.GET,
+                                                new GraphRequest.Callback() {
+                                                    public void onCompleted(GraphResponse response) {
+                                                        Log.d("WOM", "=================FRIENDS=====================");
+                                                        Log.d("WOM", response.toString());
+                                                        Log.d("WOM", "=================FRIENDS JSON OBJ=====================");
+                                                        Log.d("WOM", response.getJSONObject().toString());
+                                                    }
+                                                }
+                                        ).executeAsync();*/
+
+                                    }
+                                }
+                            });
+
+                    Bundle parameters = new Bundle();
+                    parameters.putString("fields", "id, first_name, last_name, email, gender");
+                    request.setParameters(parameters);
+                    request.executeAsync();
+                }
             }
         };
         // If the access token is available already assign it.
@@ -104,6 +148,12 @@ public class LoginActivity extends AppCompatActivity {
                     Profile oldProfile,
                     Profile currentProfile) {
                 // App code
+                if (currentProfile == null){
+                    Log.d(TAG, "onCurrentProfileChanged: currentProfile == null");
+                }
+                else {
+                    Log.d(TAG, "onCurrentProfileChanged" + currentProfile.toString());
+                }
             }
         };
 
@@ -112,81 +162,24 @@ public class LoginActivity extends AppCompatActivity {
                 new FacebookCallback<LoginResult>() {
                     @Override
                     public void onSuccess(LoginResult loginResult) {
+                        Log.d(TAG, "onSuccess");
+                        Log.d(TAG, "Access Token: " + loginResult.getAccessToken().getToken());
 
-                        System.out.println("Success");
-                        System.out.println("Access Token: " + loginResult.getAccessToken().getToken());
-                        GraphRequest request = GraphRequest.newMeRequest(
-                            loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                                @Override
-                                public void onCompleted(JSONObject json, GraphResponse response) {
-                                    if (response.getError() != null) {
-                                        // handle error
-                                        System.out.println("ERROR");
-                                    } else {
-                                        System.out.println("Success");
-                                        System.out.println(response.toString());
-                                        Bundle bFacebookData = getFacebookData(json);
+                        //This triggers onCurrentAccessTokenChanged() so code for handling it goes there
 
-                                        try {
-
-                                            String jsonresult = String.valueOf(json);
-                                            System.out.println("JSON Result" + jsonresult);
-
-                                            String id = json.getString("id");
-                                            lblID.setText("ID: "+id);
-                                            String fullName = json.getString("first_name") + json.getString("last_name");
-                                            lblName.setText("Name: "+fullName);
-
-                                            String email = json.getString("email"); //this isnt working????
-                                            lblEmail.setText("Email: "+email);
-
-                                            String gender = json.getString("gender");
-                                            lblGender.setText("Gender: "+gender);
-
-                                            ((ProfilePictureView) findViewById(R.id.profilePicture)).setProfileId(Profile.getCurrentProfile().getId());
-
-                                            new GraphRequest(
-                                                    AccessToken.getCurrentAccessToken(),
-                                                    "/"+id+"/friendlists",
-                                                    null,
-                                                    HttpMethod.GET,
-                                                    new GraphRequest.Callback() {
-                                                        public void onCompleted(GraphResponse response) {
-                                                            Log.d("WOM", "=================FRIENDS=====================");
-                                                            Log.d("WOM", response.toString());
-                                                            Log.d("WOM", "=================FRIENDS JSON OBJ=====================");
-                                                            Log.d("WOM", response.getJSONObject().toString());
-                                                        }
-                                                    }
-                                            ).executeAsync();
-
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }
-                            });
-
-                        Bundle parameters = new Bundle();
-                        parameters.putString("fields", "id, first_name, last_name, email, gender");
-                        request.setParameters(parameters);
-                        request.executeAsync();
-
-
-
-                        Snackbar.make(findViewById(R.id.login_view), "Login Success!", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(findViewById(R.id.login_view), "Logged in successfully!", Snackbar.LENGTH_LONG).show();
                     }
 
                     @Override
                     public void onCancel() {
                         Snackbar.make(findViewById(R.id.login_view), "Login Cancelled!", Snackbar.LENGTH_LONG).show();
-                        Log.d("WOM","On cancel");
+                        Log.d(TAG, "On cancel");
                     }
 
                     @Override
                     public void onError(FacebookException error) {
-                        Snackbar.make(findViewById(R.id.login_view), "Login Errored!", Snackbar.LENGTH_LONG).show();
-                        Log.d("WOM", error.toString());
+                        Snackbar.make(findViewById(R.id.login_view), "Login Error!", Snackbar.LENGTH_LONG).show();
+                        Log.e(TAG, "FacebookCallback onError: " + error.toString());
                     }
                 });
 
@@ -194,17 +187,8 @@ public class LoginActivity extends AppCompatActivity {
 
     }
 
-    // Private method to handle Facebook login and callback
-    private void onFblogin()
-    {
-        // Set permissions and try to login
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile", "user_friends"));
-
-
-    }
-
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) { //result of facebook login activity
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
@@ -216,6 +200,22 @@ public class LoginActivity extends AppCompatActivity {
         accessTokenTracker.stopTracking();
     }
 
+
+    @Override
+    protected void onStop(){
+        super.onStop();
+
+        // We need an Editor object to make preference changes.
+        // All objects are from android.context.Context
+        SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
+        SharedPreferences.Editor editor = settings.edit();
+        editor.putString("FacebookToken", curToken);
+        editor.putString("FacebookTokenExpires", )
+
+        // Commit the edits!
+        editor.commit();
+    }
+
     private Bundle getFacebookData(JSONObject object) {
 
         try {
@@ -224,7 +224,6 @@ public class LoginActivity extends AppCompatActivity {
 
             try {
                 URL profile_pic = new URL("https://graph.facebook.com/" + id + "/picture?width=200&height=150");
-                Log.i("profile_pic", profile_pic + "");
                 bundle.putString("profile_pic", profile_pic.toString());
 
             } catch (MalformedURLException e) {
@@ -232,7 +231,7 @@ public class LoginActivity extends AppCompatActivity {
                 return null;
             }
 
-            bundle.putString("idFacebook", id);
+            bundle.putString("id", id);
             if (object.has("first_name"))
                 bundle.putString("first_name", object.getString("first_name"));
             if (object.has("last_name"))
@@ -241,16 +240,12 @@ public class LoginActivity extends AppCompatActivity {
                 bundle.putString("email", object.getString("email"));
             if (object.has("gender"))
                 bundle.putString("gender", object.getString("gender"));
-            if (object.has("birthday"))
-                bundle.putString("birthday", object.getString("birthday"));
-            if (object.has("location"))
-                bundle.putString("location", object.getJSONObject("location").getString("name"));
 
             return bundle;
         } catch (Exception e) {
-            Log.d("WOM", e.getStackTrace().toString());
+            Log.d(TAG, e.getStackTrace().toString());
+            return null;
         }
-        return null;
     }
 
 }
