@@ -26,5 +26,37 @@
         android:id="@+id/btnLogout"
         android:layout_below="@+id/btnLogin"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/lblName"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/lblID"
+        android:layout_below="@+id/lblName"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/lblEmail"
+        android:layout_below="@+id/lblID"
+        android:layout_centerHorizontal="true" />
+
+    <com.facebook.login.widget.ProfilePictureView
+        android:id="@+id/profilePicture"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="10dp"
+        android:layout_gravity="center_horizontal" />
 </RelativeLayout>
 
