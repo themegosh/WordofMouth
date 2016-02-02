@@ -17,6 +17,7 @@ import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
 import com.facebook.GraphRequest;
 import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.facebook.Profile;
 import com.facebook.ProfileTracker;
 import com.facebook.login.LoginManager;
@@ -144,6 +145,21 @@ public class LoginActivity extends AppCompatActivity {
 
                                             ((ProfilePictureView) findViewById(R.id.profilePicture)).setProfileId(Profile.getCurrentProfile().getId());
 
+                                            new GraphRequest(
+                                                    AccessToken.getCurrentAccessToken(),
+                                                    "/"+id+"/friendlists",
+                                                    null,
+                                                    HttpMethod.GET,
+                                                    new GraphRequest.Callback() {
+                                                        public void onCompleted(GraphResponse response) {
+                                                            Log.d("WOM", "=================FRIENDS=====================");
+                                                            Log.d("WOM", response.toString());
+                                                            Log.d("WOM", "=================FRIENDS JSON OBJ=====================");
+                                                            Log.d("WOM", response.getJSONObject().toString());
+                                                        }
+                                                    }
+                                            ).executeAsync();
+
                                         } catch (JSONException e) {
                                             e.printStackTrace();
                                         }
@@ -155,6 +171,8 @@ public class LoginActivity extends AppCompatActivity {
                         parameters.putString("fields", "id, first_name, last_name, email, gender");
                         request.setParameters(parameters);
                         request.executeAsync();
+
+
 
                         Snackbar.make(findViewById(R.id.login_view), "Login Success!", Snackbar.LENGTH_LONG).show();
                     }
@@ -172,6 +190,8 @@ public class LoginActivity extends AppCompatActivity {
                     }
                 });
 
+
+
     }
 
     // Private method to handle Facebook login and callback
@@ -179,6 +199,8 @@ public class LoginActivity extends AppCompatActivity {
     {
         // Set permissions and try to login
         LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile", "user_friends"));
+
+
     }
 
     @Override
