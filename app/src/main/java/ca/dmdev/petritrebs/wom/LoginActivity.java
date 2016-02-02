@@ -35,6 +35,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         FacebookSdk.sdkInitialize(this.getApplicationContext());
+        callbackManager = CallbackManager.Factory.create();
+
         setContentView(R.layout.activity_login);
 
         //there is no checking if the user is logged in yet
@@ -70,7 +72,6 @@ public class LoginActivity extends AppCompatActivity {
         // If the access token is available already assign it.
         accessToken = AccessToken.getCurrentAccessToken();
 
-        callbackManager = CallbackManager.Factory.create();
 
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
@@ -125,12 +126,8 @@ public class LoginActivity extends AppCompatActivity {
     // Private method to handle Facebook login and callback
     private void onFblogin()
     {
-
-
-        // Set permissions
+        // Set permissions and try to login
         LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile", "user_friends"));
-
-
     }
 
     @Override
