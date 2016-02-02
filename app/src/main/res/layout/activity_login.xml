@@ -11,14 +11,20 @@
     tools:context="ca.dmdev.petritrebs.wom.LoginActivity">
 
 
-    <com.facebook.login.widget.LoginButton
-        android:id="@+id/login_button"
+    <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginTop="30dp"
-        android:layout_marginBottom="30dp"
-        android:layout_centerInParent="true" />
+        android:text="Facebook Login"
+        android:id="@+id/btnLogin"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:id="@+id/btnLogout"
+        android:layout_below="@+id/btnLogin"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>
 

@@ -6,7 +6,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 
+import com.facebook.AccessToken;
+import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
@@ -25,7 +28,8 @@ import java.util.Arrays;
 public class LoginActivity extends AppCompatActivity {
 
     public static CallbackManager callbackManager;
-    LoginButton loginButton;
+    AccessTokenTracker accessTokenTracker;
+    AccessToken accessToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,26 +37,40 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(this.getApplicationContext());
         setContentView(R.layout.activity_login);
 
-        loginButton = (LoginButton)findViewById(R.id.login_button);
-        loginButton.setOnClickListener(new View.OnClickListener() {
-
+        //there is no checking if the user is logged in yet
+        Button btnLogin = (Button)findViewById(R.id.btnLogin);
+        btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Call private method
                 onFblogin();
             }
         });
 
+        //there is no checking if the user is logged in yet
+        Button btnLogout = (Button)findViewById(R.id.btnLogout);
+        btnLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Call private method
+                LoginManager.getInstance().logOut();
+                Snackbar.make(findViewById(R.id.login_view), "Logged out!", Snackbar.LENGTH_LONG).show();
+            }
+        });
 
-    }
 
-    // Private method to handle Facebook login and callback
-    private void onFblogin()
-    {
+        accessTokenTracker = new AccessTokenTracker() {
+            @Override
+            protected void onCurrentAccessTokenChanged(
+                    AccessToken oldAccessToken,
+                    AccessToken currentAccessToken) {
+                // Set the access token using
+                // currentAccessToken when it's loaded or set.
+            }
+        };
+        // If the access token is available already assign it.
+        accessToken = AccessToken.getCurrentAccessToken();
+
         callbackManager = CallbackManager.Factory.create();
-
-        // Set permissions
-        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile", "user_friends"));
 
         LoginManager.getInstance().registerCallback(callbackManager,
                 new FacebookCallback<LoginResult>() {
@@ -61,30 +79,30 @@ public class LoginActivity extends AppCompatActivity {
 
                         System.out.println("Success");
                         GraphRequest.newMeRequest(
-                            loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
-                                @Override
-                                public void onCompleted(JSONObject json, GraphResponse response) {
-                                    if (response.getError() != null) {
-                                        // handle error
-                                        System.out.println("ERROR");
-                                    } else {
-                                        System.out.println("Success");
-                                        System.out.println(response.toString());
-                                        try {
+                                loginResult.getAccessToken(), new GraphRequest.GraphJSONObjectCallback() {
+                                    @Override
+                                    public void onCompleted(JSONObject json, GraphResponse response) {
+                                        if (response.getError() != null) {
+                                            // handle error
+                                            System.out.println("ERROR");
+                                        } else {
+                                            System.out.println("Success");
+                                            System.out.println(response.toString());
+                                            try {
 
-                                            String jsonresult = String.valueOf(json);
-                                            System.out.println("JSON Result" + jsonresult);
+                                                String jsonresult = String.valueOf(json);
+                                                System.out.println("JSON Result" + jsonresult);
 
-                                            String email = json.getString("email");
-                                            String id = json.getString("id");
-                                            String fullName = json.getString("name");
+                                                String email = json.getString("email");
+                                                String id = json.getString("id");
+                                                String fullName = json.getString("name");
 
-                                        } catch (JSONException e) {
-                                            e.printStackTrace();
+                                            } catch (JSONException e) {
+                                                e.printStackTrace();
+                                            }
                                         }
                                     }
-                                }
-                            }).executeAsync();
+                                }).executeAsync();
 
                         Snackbar.make(findViewById(R.id.login_view), "Login Success!", Snackbar.LENGTH_LONG).show();
                     }
@@ -101,6 +119,18 @@ public class LoginActivity extends AppCompatActivity {
                         Log.d("WOM", error.toString());
                     }
                 });
+
+    }
+
+    // Private method to handle Facebook login and callback
+    private void onFblogin()
+    {
+
+
+        // Set permissions
+        LoginManager.getInstance().logInWithReadPermissions(this, Arrays.asList("email", "public_profile", "user_friends"));
+
+
     }
 
     @Override
@@ -109,5 +139,11 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager.onActivityResult(requestCode, resultCode, data);
     }
 
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        accessTokenTracker.stopTracking();
+    }
 
 }
