@@ -56,22 +56,6 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
 
-        // Restore preferences load the previous session for facebook!
-        SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
-        if (settings != null) {
-            AccessToken at = new AccessToken(
-                    settings.getString("FacebookToken", ""),
-                    getString(R.string.facebook_app_id),
-                    settings.getString("FacebookTokenID", ""),
-                    null,
-                    null,
-                    null,
-                    new Date(settings.getString("FacebookTokenExpires", "")),
-                    null
-            );
-            AccessToken.setCurrentAccessToken(at);
-        }
-
         //there is no checking if the user is logged in yet
         Button btnLogin = (Button)findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(new View.OnClickListener() {
@@ -109,15 +93,6 @@ public class LoginActivity extends AppCompatActivity {
 
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
 
-                    // Save current login to share prefs
-                    SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
-                    SharedPreferences.Editor editor = settings.edit();
-                    editor.putString("FacebookToken", currentAccessToken.toString());
-                    editor.putString("FacebookTokenExpires", currentAccessToken.getExpires().toString());
-                    editor.putString("FacebookTokenID", currentAccessToken.getUserId());
-                    // Commit the edits!
-                    editor.apply(); //apply() over commit() for async
-
                     updateFacebookData(currentAccessToken);
 
                 }
@@ -125,6 +100,7 @@ public class LoginActivity extends AppCompatActivity {
         };
         // If the access token is available already assign it.
         accessToken = AccessToken.getCurrentAccessToken();
+        updateFacebookData(accessToken);
 
         profileTracker = new ProfileTracker() {
             @Override
@@ -148,9 +124,7 @@ public class LoginActivity extends AppCompatActivity {
                     public void onSuccess(LoginResult loginResult) {
                         Log.d(TAG, "onSuccess");
                         Log.d(TAG, "Access Token: " + loginResult.getAccessToken().getToken());
-
                         //This triggers onCurrentAccessTokenChanged() so code for handling it goes there
-
                         Snackbar.make(findViewById(R.id.login_view), "Logged in successfully!", Snackbar.LENGTH_LONG).show();
                     }
 
