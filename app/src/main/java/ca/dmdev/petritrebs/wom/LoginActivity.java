@@ -3,6 +3,7 @@ package ca.dmdev.petritrebs.wom;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInstaller;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
 import com.facebook.CallbackManager;
+import com.facebook.FacebookActivity;
 import com.facebook.FacebookCallback;
 import com.facebook.FacebookException;
 import com.facebook.FacebookSdk;
@@ -26,7 +28,9 @@ import com.facebook.login.LoginManager;
 import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.facebook.login.widget.ProfilePictureView;
+import com.facebook.FacebookException;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -44,8 +48,6 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = LoginActivity.class.getName();
     private static final String SHARED_FACEBOOK_TOKEN = "FacebookToken";
-    private static String curToken;
-    private static Date curTokenExipre;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,9 +56,21 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
 
-        // Restore preferences
-        //SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
-        //boolean silent = settings.getBoolean("silentMode", false);
+        // Restore preferences load the previous session for facebook!
+        SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
+        if (settings != null) {
+            AccessToken at = new AccessToken(
+                    settings.getString("FacebookToken", ""),
+                    getString(R.string.facebook_app_id),
+                    settings.getString("FacebookTokenID", ""),
+                    null,
+                    null,
+                    null,
+                    new Date(settings.getString("FacebookTokenExpires", "")),
+                    null
+            );
+            AccessToken.setCurrentAccessToken(at);
+        }
 
         //there is no checking if the user is logged in yet
         Button btnLogin = (Button)findViewById(R.id.btnLogin);
@@ -85,57 +99,27 @@ public class LoginActivity extends AppCompatActivity {
             protected void onCurrentAccessTokenChanged(
                     AccessToken oldAccessToken,
                     AccessToken currentAccessToken) {
+
                 // Set the access token using
                 // currentAccessToken when it's loaded or set.
                 if (currentAccessToken == null){
                     Log.d(TAG, "onCurrentAccessTokenChanged: currentAccessToken == null");
                 }
-                else {
+                else { //we have a token
+
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
-                    curToken = currentAccessToken.getToken();
-                    curTokenExipre = currentAccessToken.getExpires();
 
-                    //set up graph request
-                    GraphRequest request = GraphRequest.newMeRequest(
-                            currentAccessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
-                                @Override
-                                public void onCompleted(JSONObject json, GraphResponse response) {
-                                    if (response.getError() != null) {
-                                        // handle error
-                                        Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
-                                    } else {
-                                        Log.d(TAG, "onCompleted Success");
-                                        Log.d(TAG, "Response: " + response.toString());
-                                        Bundle loginData = getFacebookData(json);
-                                        Log.d(TAG, "Bundle: " + loginData.toString());
+                    // Save current login to share prefs
+                    SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
+                    SharedPreferences.Editor editor = settings.edit();
+                    editor.putString("FacebookToken", currentAccessToken.toString());
+                    editor.putString("FacebookTokenExpires", currentAccessToken.getExpires().toString());
+                    editor.putString("FacebookTokenID", currentAccessToken.getUserId());
+                    // Commit the edits!
+                    editor.apply(); //apply() over commit() for async
 
-                                        ///todo: Add/update login info from bFacebookData
+                    updateFacebookData(currentAccessToken);
 
-                                        ///todo: get friends list
-
-                                        /*new GraphRequest(
-                                                AccessToken.getCurrentAccessToken(),
-                                                "/"+bFacebookData.getString("id")+"/friendlists",
-                                                null,
-                                                HttpMethod.GET,
-                                                new GraphRequest.Callback() {
-                                                    public void onCompleted(GraphResponse response) {
-                                                        Log.d("WOM", "=================FRIENDS=====================");
-                                                        Log.d("WOM", response.toString());
-                                                        Log.d("WOM", "=================FRIENDS JSON OBJ=====================");
-                                                        Log.d("WOM", response.getJSONObject().toString());
-                                                    }
-                                                }
-                                        ).executeAsync();*/
-
-                                    }
-                                }
-                            });
-
-                    Bundle parameters = new Bundle();
-                    parameters.putString("fields", "id, first_name, last_name, email, gender");
-                    request.setParameters(parameters);
-                    request.executeAsync();
                 }
             }
         };
@@ -204,17 +188,103 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStop(){
         super.onStop();
-
-        // We need an Editor object to make preference changes.
-        // All objects are from android.context.Context
-        SharedPreferences settings = getSharedPreferences(SHARED_FACEBOOK_TOKEN, 0);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("FacebookToken", curToken);
-        editor.putString("FacebookTokenExpires", )
-
-        // Commit the edits!
-        editor.commit();
     }
+
+    //update facebook data
+    private void updateFacebookData(AccessToken accessToken){
+        //set up graph request
+        GraphRequest request = GraphRequest.newMeRequest(
+            accessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
+                @Override
+                public void onCompleted(JSONObject json, GraphResponse response) {
+                    if (response.getError() != null) {
+                        // handle error
+                        Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
+                    } else {
+                        Log.d(TAG, "onCompleted Success");
+                        Log.d(TAG, "Response: " + response.toString());
+                        Bundle loginData = getFacebookData(json);
+                        Log.d(TAG, "Bundle: " + loginData.toString());
+
+                        ///todo: Add/update login info from bFacebookData
+
+                        ///todo: get friends list
+
+                        new GraphRequest(
+                                AccessToken.getCurrentAccessToken(),
+                                "me/friends",
+                                null,
+                                HttpMethod.GET,
+                                new GraphRequest.Callback() {
+                                    public void onCompleted(GraphResponse response) {
+                                        Log.d(TAG, "=================FRIENDS=====================");
+                                        Log.d(TAG, response.toString());
+                                        Log.d(TAG, "=================FRIENDS JSON OBJ=====================");
+                                        Log.d(TAG, response.getJSONObject().toString());
+                                        try {
+                                            Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
+                                        }
+                                        catch (Exception e)
+                                        {
+                                            Log.e(TAG, e.getStackTrace().toString());
+                                        }
+                                    }
+                                }
+                        ).executeAsync();
+
+                    }
+                }
+            }
+        );
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id, first_name, last_name, email, gender");
+        request.setParameters(parameters);
+        request.executeAsync();
+    }
+
+    /*private class FriendsRequestListener implements RequestListener {
+        String friendData;
+
+        //Method runs when request is complete
+        public void onComplete(String response, Object state) {
+            Log.v("", "FriendListRequestONComplete");
+            //Create a copy of the response so i can be read in the run() method.
+            friendData = response;
+            Log.v("friendData--", ""+friendData);
+            //Create method to run on UI thread
+            LoginActivity.this.runOnUiThread(new Runnable() {
+                public void run() {
+                    try {
+                        //Parse JSON Data
+                        JSONObject json;
+                        json = Util.parseJson(friendData);
+
+                        //Get the JSONArry from our response JSONObject
+                        JSONArray friendArray = json.getJSONArray("data");
+
+                        Log.v("friendArray--", ""+friendArray);
+
+                        for(int i = 0; i< friendArray.length(); i++)
+                        {
+                            JSONObject frnd_obj = friendArray.getJSONObject(i);
+                            friends.add(frnd_obj.getString("name")+"~~~"+frnd_obj.getString("id"));
+                        }
+
+                        Intent ide = new Intent(LoginActivity.this,FrndActivity.class);
+                        ide.putStringArrayListExtra("friends", friends);
+                        //  ide.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(ide);
+
+                        //  ArrayAdapter<String> adapter = new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_list_item_1,android.R.id.text1, friends_list);
+                        //   lv.setAdapter(adapter);
+
+                    } catch (JSONException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                }
+            });
+        }*/
 
     private Bundle getFacebookData(JSONObject object) {
 
