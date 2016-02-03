@@ -14,6 +14,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -34,8 +35,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        Snackbar.make(findViewById(R.id.main_layout), "Welcome back, $username", Snackbar.LENGTH_INDEFINITE)
-                .setAction("Dismiss", null).show();
+        Snackbar.make(findViewById(R.id.main_layout), "Welcome back, $username", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
