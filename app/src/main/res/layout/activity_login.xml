@@ -13,7 +13,8 @@
         android:text="Facebook Login"
         android:id="@+id/btnLogin"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:textSize="24dp" />
 
 
 
