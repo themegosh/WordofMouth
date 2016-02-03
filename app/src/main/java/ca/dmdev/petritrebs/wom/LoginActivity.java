@@ -41,13 +41,14 @@ import java.util.Date;
 
 public class LoginActivity extends AppCompatActivity {
 
-    public static CallbackManager callbackManager;
-    AccessTokenTracker accessTokenTracker;
-    AccessToken accessToken;
-    ProfileTracker profileTracker;
+    private static CallbackManager callbackManager;
+    private AccessTokenTracker accessTokenTracker;
+    private AccessToken accessToken;
+    private ProfileTracker profileTracker;
+    private Intent mainActivity;
 
     private static final String TAG = LoginActivity.class.getName();
-    private static final String SHARED_FACEBOOK_TOKEN = "FacebookToken";
+    private static final int REQUEST_LOGOUT = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +56,15 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(this.getApplicationContext()); //set up facebook SDK before setContentView!
         callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
+
+        if (AccessToken.getCurrentAccessToken() != null){
+            //update current data
+
+            //open the main activity
+            mainActivity = new Intent(this, MainActivity.class);
+            startActivityForResult(mainActivity, REQUEST_LOGOUT);
+        }
+
 
         //there is no checking if the user is logged in yet
         Button btnLogin = (Button)findViewById(R.id.btnLogin);
@@ -66,16 +76,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        //there is no checking if the user is logged in yet
-        Button btnLogout = (Button)findViewById(R.id.btnLogout);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Call private method
-                LoginManager.getInstance().logOut();
-                Snackbar.make(findViewById(R.id.login_view), "Logged out!", Snackbar.LENGTH_LONG).show();
-            }
-        });
 
 
         accessTokenTracker = new AccessTokenTracker() {
@@ -90,11 +90,10 @@ public class LoginActivity extends AppCompatActivity {
                     Log.d(TAG, "onCurrentAccessTokenChanged: currentAccessToken == null");
                 }
                 else { //we have a token
-
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
-
                     updateFacebookData(currentAccessToken);
-
+                    mainActivity = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivityForResult(mainActivity, REQUEST_LOGOUT);
                 }
             }
         };
@@ -119,36 +118,47 @@ public class LoginActivity extends AppCompatActivity {
 
 
         LoginManager.getInstance().registerCallback(callbackManager,
-                new FacebookCallback<LoginResult>() {
-                    @Override
-                    public void onSuccess(LoginResult loginResult) {
-                        Log.d(TAG, "onSuccess");
-                        Log.d(TAG, "Access Token: " + loginResult.getAccessToken().getToken());
-                        //This triggers onCurrentAccessTokenChanged() so code for handling it goes there
-                        Snackbar.make(findViewById(R.id.login_view), "Logged in successfully!", Snackbar.LENGTH_LONG).show();
-                    }
+            new FacebookCallback<LoginResult>() {
+                @Override
+                public void onSuccess(LoginResult loginResult) {
+                    Log.d(TAG, "onSuccess");
+                    Log.d(TAG, "Access Token: " + loginResult.getAccessToken().getToken());
+                    //This triggers onCurrentAccessTokenChanged() so code for handling it goes there
+                    Snackbar.make(findViewById(R.id.login_view), "Logged in successfully!", Snackbar.LENGTH_LONG).show();
+                }
 
-                    @Override
-                    public void onCancel() {
-                        Snackbar.make(findViewById(R.id.login_view), "Login Cancelled!", Snackbar.LENGTH_LONG).show();
-                        Log.d(TAG, "On cancel");
-                    }
+                @Override
+                public void onCancel() {
+                    Snackbar.make(findViewById(R.id.login_view), "Login Cancelled!", Snackbar.LENGTH_LONG).show();
+                    Log.d(TAG, "On cancel");
+                }
 
-                    @Override
-                    public void onError(FacebookException error) {
-                        Snackbar.make(findViewById(R.id.login_view), "Login Error!", Snackbar.LENGTH_LONG).show();
-                        Log.e(TAG, "FacebookCallback onError: " + error.toString());
-                    }
-                });
-
-
-
+                @Override
+                public void onError(FacebookException error) {
+                    Snackbar.make(findViewById(R.id.login_view), "Login Error!", Snackbar.LENGTH_LONG).show();
+                    Log.e(TAG, "FacebookCallback onError: " + error.toString());
+                }
+            });
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) { //result of facebook login activity
         super.onActivityResult(requestCode, resultCode, data);
         callbackManager.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == 1) {
+            if(resultCode == Activity.RESULT_OK){
+                boolean logout = data.getBooleanExtra("logout", false);
+                Log.d(TAG, "Logout onActivityResult called! Result: " + logout);
+                LoginManager.getInstance().logOut();
+                Snackbar.make(findViewById(R.id.login_view), "Logged out.", Snackbar.LENGTH_INDEFINITE).show();
+            }
+            if (resultCode == Activity.RESULT_CANCELED) {
+                mainActivity = new Intent(this, MainActivity.class);
+                startActivityForResult(mainActivity, REQUEST_LOGOUT);
+            }
+        }
+
     }
 
 
@@ -200,7 +210,7 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                         catch (Exception e)
                                         {
-                                            Log.e(TAG, e.getStackTrace().toString());
+                                            Log.e(TAG, e.getMessage());
                                         }
                                     }
                                 }
@@ -216,49 +226,6 @@ public class LoginActivity extends AppCompatActivity {
         request.setParameters(parameters);
         request.executeAsync();
     }
-
-    /*private class FriendsRequestListener implements RequestListener {
-        String friendData;
-
-        //Method runs when request is complete
-        public void onComplete(String response, Object state) {
-            Log.v("", "FriendListRequestONComplete");
-            //Create a copy of the response so i can be read in the run() method.
-            friendData = response;
-            Log.v("friendData--", ""+friendData);
-            //Create method to run on UI thread
-            LoginActivity.this.runOnUiThread(new Runnable() {
-                public void run() {
-                    try {
-                        //Parse JSON Data
-                        JSONObject json;
-                        json = Util.parseJson(friendData);
-
-                        //Get the JSONArry from our response JSONObject
-                        JSONArray friendArray = json.getJSONArray("data");
-
-                        Log.v("friendArray--", ""+friendArray);
-
-                        for(int i = 0; i< friendArray.length(); i++)
-                        {
-                            JSONObject frnd_obj = friendArray.getJSONObject(i);
-                            friends.add(frnd_obj.getString("name")+"~~~"+frnd_obj.getString("id"));
-                        }
-
-                        Intent ide = new Intent(LoginActivity.this,FrndActivity.class);
-                        ide.putStringArrayListExtra("friends", friends);
-                        //  ide.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(ide);
-
-                        //  ArrayAdapter<String> adapter = new ArrayAdapter<String>(getBaseContext(), android.R.layout.simple_list_item_1,android.R.id.text1, friends_list);
-                        //   lv.setAdapter(adapter);
-
-                    } catch (JSONException e) {
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                }
-            });
-        }*/
 
     private Bundle getFacebookData(JSONObject object) {
 
