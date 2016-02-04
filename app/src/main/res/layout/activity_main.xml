@@ -17,10 +17,11 @@
         android:layout_height="match_parent"
         android:gravity="bottom"
         sothree:umanoPanelHeight="68dp"
-        sothree:umanoShadowHeight="4dp"
+        sothree:umanoShadowHeight="6dp"
         sothree:umanoParallaxOffset="100dp"
-        sothree:umanoDragView="@+id/dragView"
+        sothree:umanoDragView="@+id/sliderBar"
         sothree:umanoOverlay="true"
+        sothree:umanoFadeColor="@android:color/transparent"
         sothree:umanoScrollableView="@+id/list">
 
         <!-- MAIN CONTENT -->
@@ -65,7 +66,7 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:id="@+id/name"
+                    android:id="@+id/lblLowerBar"
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
@@ -75,7 +76,7 @@
                     android:paddingLeft="10dp"/>
 
                 <Button
-                    android:id="@+id/follow"
+                    android:id="@+id/btnLowerAction"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:textSize="14sp"
