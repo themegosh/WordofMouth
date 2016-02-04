@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
@@ -151,7 +152,7 @@ public class LoginActivity extends AppCompatActivity {
                 boolean logout = data.getBooleanExtra("logout", false);
                 Log.d(TAG, "Logout onActivityResult called! Result: " + logout);
                 LoginManager.getInstance().logOut();
-                Snackbar.make(findViewById(R.id.login_view), "Logged out.", Snackbar.LENGTH_INDEFINITE).show();
+                Toast.makeText(getApplicationContext(), "Logged out.", Toast.LENGTH_LONG);
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 mainActivity = new Intent(this, MainActivity.class);
