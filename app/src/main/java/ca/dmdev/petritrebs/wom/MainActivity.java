@@ -40,6 +40,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = LoginActivity.class.getName();
+    private SlidingUpPanelLayout mLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +49,37 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+            }
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                Log.i(TAG, "onPanelExpanded");
+
+            }
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                Log.i(TAG, "onPanelCollapsed");
+
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+                Log.i(TAG, "onPanelAnchored");
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+                Log.i(TAG, "onPanelHidden");
+            }
+        });
+
+
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,10 +87,10 @@ public class MainActivity extends AppCompatActivity
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
-        });
+        });*/
 
-        Snackbar.make(findViewById(R.id.main_layout), "Welcome back, $username", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();*/
+        Snackbar.make(findViewById(R.id.main_layout), "Welcome back, first_name", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -113,6 +145,8 @@ public class MainActivity extends AppCompatActivity
                 your_array_list );
 
         lv.setAdapter(arrayAdapter);
+
+
     }
 
     @Override
@@ -154,16 +188,18 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
+        if (id == R.id.nav_toggle_anchor) {
+            if (mLayout != null) {
+                if (mLayout.getAnchorPoint() == 1.0f) {
+                    mLayout.setAnchorPoint(0.7f);
+                    mLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+                    item.setTitle("Enable Anchor");
+                } else {
+                    mLayout.setAnchorPoint(1.0f);
+                    mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                    item.setTitle("Disable Anchor");
+                }
+            }
         } else if (id == R.id.nav_logout) {
 
             DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
