@@ -21,7 +21,7 @@
         sothree:umanoParallaxOffset="100dp"
         sothree:umanoDragView="@+id/sliderBar"
         sothree:umanoOverlay="true"
-        sothree:umanoFadeColor="@android:color/transparent"
+        sothree:umanoFadeColor="@color/panelTransparency"
         sothree:umanoScrollableView="@+id/list">
 
         <!-- MAIN CONTENT -->
