@@ -89,9 +89,6 @@ public class MainActivity extends AppCompatActivity
             }
         });*/
 
-        Snackbar.make(findViewById(R.id.main_layout), "Welcome back, first_name", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);

@@ -75,15 +75,14 @@
                     android:gravity="center_vertical"
                     android:paddingLeft="10dp"/>
 
-                <Button
-                    android:id="@+id/btnLowerAction"
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/fab_save"
                     android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:textSize="14sp"
-                    android:gravity="center_vertical|right"
-                    android:text="A button"
-                    android:paddingRight="10dp"
-                    android:paddingLeft="10dp"/>
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical|end"
+                    android:layout_margin="6dp"
+                    android:src="@android:drawable/ic_dialog_map" />
+
 
             </LinearLayout>
 
