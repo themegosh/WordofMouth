@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
             }
 
             @Override
