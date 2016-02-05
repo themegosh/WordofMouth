@@ -155,6 +155,11 @@ public class MainActivity extends AppCompatActivity
 
         //prevent the user from going back to the login activity
         //super.onBackPressed(); //this should be commented out
+        Intent logout = new Intent();
+        logout.putExtra("backPressed", true);
+        setResult(Activity.RESULT_OK, logout);
+        finish();
+
     }
 
     @Override

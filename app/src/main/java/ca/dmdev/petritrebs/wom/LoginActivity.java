@@ -149,10 +149,14 @@ public class LoginActivity extends AppCompatActivity {
 
         if (requestCode == 1) {
             if(resultCode == Activity.RESULT_OK){
-                boolean logout = data.getBooleanExtra("logout", false);
-                Log.d(TAG, "Logout onActivityResult called! Result: " + logout);
-                LoginManager.getInstance().logOut();
-                Toast.makeText(getApplicationContext(), "Logged out.", Toast.LENGTH_LONG);
+                if (data.getBooleanExtra("logout", false)) {
+                    Log.d(TAG, "Logout intent from MainActivity");
+                    LoginManager.getInstance().logOut();
+                    Toast.makeText(getApplicationContext(), "Logged out.", Toast.LENGTH_LONG);
+                }
+                if (data.getBooleanExtra("backPressed", false)){
+                    finish();
+                }
             }
             if (resultCode == Activity.RESULT_CANCELED) {
                 mainActivity = new Intent(this, MainActivity.class);
