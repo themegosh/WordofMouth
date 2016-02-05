@@ -7,6 +7,7 @@ import android.content.pm.PackageInstaller;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -92,7 +93,7 @@ public class LoginActivity extends AppCompatActivity {
                 }
                 else { //we have a token
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
-                    updateFacebookData(currentAccessToken);
+                    updateFacebookData(currentAccessToken);//we need to do this threaded
                     mainActivity = new Intent(getApplicationContext(), MainActivity.class);
                     startActivityForResult(mainActivity, REQUEST_LOGOUT);
                 }
