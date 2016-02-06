@@ -6,7 +6,6 @@
     android:id="@+id/login_view"
     tools:context="ca.dmdev.petritrebs.wom.LoginActivity">
 
-
     <Button
         android:layout_width="fill_parent"
         android:layout_height="100dp"
@@ -16,8 +15,6 @@
         android:layout_centerVertical="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
-
-
 
 
 </RelativeLayout>

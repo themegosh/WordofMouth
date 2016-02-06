@@ -1,9 +1,11 @@
 package ca.dmdev.petritrebs.wom;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInstaller;
+import android.os.AsyncTask;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,22 +33,32 @@ import com.facebook.login.LoginResult;
 import com.facebook.login.widget.LoginButton;
 import com.facebook.login.widget.ProfilePictureView;
 import com.facebook.FacebookException;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class LoginActivity extends AppCompatActivity {
 
     private static CallbackManager callbackManager;
     private AccessTokenTracker accessTokenTracker;
-    private AccessToken accessToken;
-    private ProfileTracker profileTracker;
     private Intent mainActivity;
 
     private static final String TAG = LoginActivity.class.getName();
@@ -59,25 +71,28 @@ public class LoginActivity extends AppCompatActivity {
         callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
 
-        if (AccessToken.getCurrentAccessToken() != null){
-            //update current data
+        //try to get the old access token
+        AccessToken accessToken = AccessToken.getCurrentAccessToken();
+        //test if this is a returning user,
+        if (accessToken != null){
+            //update current data with the data on the server
+            updateFacebookData(accessToken);
 
-            //open the main activity
+            //open the new activity, passing the user's data
             mainActivity = new Intent(this, MainActivity.class);
             startActivityForResult(mainActivity, REQUEST_LOGOUT);
         }
 
+        //if we get this far, it means the user has either logged out or is new
 
-        //there is no checking if the user is logged in yet
-        Button btnLogin = (Button)findViewById(R.id.btnLogin);
+        Button btnLogin = (Button) findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Set permissions and try to login
-                LoginManager.getInstance().logInWithReadPermissions((Activity) v.getContext(), Arrays.asList("email", "public_profile", "user_friends"));
+            // Set permissions and try to login
+            LoginManager.getInstance().logInWithReadPermissions((Activity) v.getContext(), Arrays.asList("email", "public_profile", "user_friends"));
             }
         });
-
 
 
         accessTokenTracker = new AccessTokenTracker() {
@@ -88,10 +103,9 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Set the access token using
                 // currentAccessToken when it's loaded or set.
-                if (currentAccessToken == null){
+                if (currentAccessToken == null) {
                     Log.d(TAG, "onCurrentAccessTokenChanged: currentAccessToken == null");
-                }
-                else { //we have a token
+                } else { //we have a token
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
                     updateFacebookData(currentAccessToken);//we need to do this threaded
                     mainActivity = new Intent(getApplicationContext(), MainActivity.class);
@@ -99,26 +113,24 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         };
-        // If the access token is available already assign it.
-        accessToken = AccessToken.getCurrentAccessToken();
-        updateFacebookData(accessToken);
 
-        profileTracker = new ProfileTracker() {
+        //do we even need this?
+        ProfileTracker profileTracker = new ProfileTracker() {
             @Override
             protected void onCurrentProfileChanged(
                     Profile oldProfile,
                     Profile currentProfile) {
                 // App code
-                if (currentProfile == null){
+                if (currentProfile == null) {
                     Log.d(TAG, "onCurrentProfileChanged: currentProfile == null");
-                }
-                else {
+                } else {
                     Log.d(TAG, "onCurrentProfileChanged" + currentProfile.toString());
                 }
             }
         };
 
 
+        //this is what handles the callback for the facebook login activity
         LoginManager.getInstance().registerCallback(callbackManager,
             new FacebookCallback<LoginResult>() {
                 @Override
@@ -140,9 +152,11 @@ public class LoginActivity extends AppCompatActivity {
                     Snackbar.make(findViewById(R.id.login_view), "Login Error!", Snackbar.LENGTH_LONG).show();
                     Log.e(TAG, "FacebookCallback onError: " + error.toString());
                 }
-            });
+            }
+        );
     }
 
+    //this is triggered when the main activity is finish();ed or when the facebook activity returns here after login
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) { //result of facebook login activity
         super.onActivityResult(requestCode, resultCode, data);
@@ -153,7 +167,7 @@ public class LoginActivity extends AppCompatActivity {
                 if (data.getBooleanExtra("logout", false)) {
                     Log.d(TAG, "Logout intent from MainActivity");
                     LoginManager.getInstance().logOut();
-                    Toast.makeText(getApplicationContext(), "Logged out.", Toast.LENGTH_LONG);
+                    Toast.makeText(getApplicationContext(), "Logged out.", Toast.LENGTH_LONG).show();
                 }
                 if (data.getBooleanExtra("backPressed", false)){
                     finish();
@@ -181,9 +195,9 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     //update facebook data
-    private void updateFacebookData(AccessToken accessToken){
+    private void updateFacebookData(final AccessToken accessToken){
         //set up graph request
-        GraphRequest request = GraphRequest.newMeRequest(
+        GraphRequest userInfo = GraphRequest.newMeRequest(
             accessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
                 @Override
                 public void onCompleted(JSONObject json, GraphResponse response) {
@@ -196,31 +210,11 @@ public class LoginActivity extends AppCompatActivity {
                         Bundle loginData = getFacebookData(json);
                         Log.d(TAG, "Bundle: " + loginData.toString());
 
-                        ///todo: Add/update login info from bFacebookData
 
-                        ///todo: get friends list
 
-                        new GraphRequest(
-                                AccessToken.getCurrentAccessToken(),
-                                "me/friends",
-                                null,
-                                HttpMethod.GET,
-                                new GraphRequest.Callback() {
-                                    public void onCompleted(GraphResponse response) {
-                                        Log.d(TAG, "=================FRIENDS=====================");
-                                        Log.d(TAG, response.toString());
-                                        Log.d(TAG, "=================FRIENDS JSON OBJ=====================");
-                                        Log.d(TAG, response.getJSONObject().toString());
-                                        try {
-                                            Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            Log.e(TAG, e.getMessage());
-                                        }
-                                    }
-                                }
-                        ).executeAsync();
+
+
+                        new UpdateExternalDb().execute(loginData);
 
                     }
                 }
@@ -229,8 +223,37 @@ public class LoginActivity extends AppCompatActivity {
 
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id, first_name, last_name, email, gender");
-        request.setParameters(parameters);
-        request.executeAsync();
+        userInfo.setParameters(parameters);
+        userInfo.executeAsync();
+
+        //new GraphRequest()
+
+        new GraphRequest(
+                accessToken,
+                "me/friends",
+                null,
+                HttpMethod.GET,
+                new GraphRequest.Callback() {
+                    public void onCompleted(GraphResponse response) {
+                        if (response.getError() != null) {
+                            // handle error
+                            Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
+                        } else {
+                            Log.d(TAG, "=================FRIENDS=====================");
+                            Log.d(TAG, response.toString());
+                            Log.d(TAG, "=================FRIENDS JSON OBJ=====================");
+                            Log.d(TAG, response.getJSONObject().toString());
+                            try {
+                                Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
+                            }
+                            catch (Exception e)
+                            {
+                                Log.e(TAG, e.getMessage());
+                            }
+                        }
+                    }
+                }
+        ).executeAsync();
     }
 
     private Bundle getFacebookData(JSONObject object) {
@@ -263,6 +286,82 @@ public class LoginActivity extends AppCompatActivity {
             Log.d(TAG, e.getStackTrace().toString());
             return null;
         }
+    }
+
+    private class UpdateExternalDb extends AsyncTask<Bundle, Void, String> {
+        private static final String TAG = "PostFetcher";
+        public final String SERVER_URL = "http://wom.dmdev/ca/process.php";
+        public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
+        OkHttpClient client = new OkHttpClient();
+
+        @Override
+        protected String doInBackground(Bundle... params) {
+
+            try {
+
+                if (params.length == 1){
+                    params[0].getString("first_name");
+                }
+
+                /*RequestBody body = RequestBody.create(JSON, json);
+                Request request = new Request.Builder()
+                        .url(url)
+                        .post(body)
+                        .build();
+                Response response = client.newCall(request).execute();
+                return response.body().string();*/
+
+
+                //Create an HTTP client
+                /*HttpClient client = new DefaultHttpClient();
+                HttpPost post = new HttpPost(SERVER_URL);
+
+                //Perform the request and check the status code
+                HttpResponse response = client.execute(post);
+                StatusLine statusLine = response.getStatusLine();
+                if(statusLine.getStatusCode() == 200) {
+                    HttpEntity entity = response.getEntity();
+                    InputStream content = entity.getContent();
+
+                    try {
+                        //Read the server response and attempt to parse it as JSON
+                        Reader reader = new InputStreamReader(content);
+
+                        GsonBuilder gsonBuilder = new GsonBuilder();
+                        gsonBuilder.setDateFormat("M/d/yy hh:mm a");
+                        Gson gson = gsonBuilder.create();
+                        List<Post> posts = new ArrayList<Post>();
+                        posts = Arrays.asList(gson.fromJson(reader, Post[].class));
+                        content.close();
+
+                        handlePostsList(posts);
+                    } catch (Exception ex) {
+                        Log.e(TAG, "Failed to parse JSON due to: " + ex);
+                        failedLoadingPosts();
+                    }
+                } else {
+                    Log.e(TAG, "Server responded with status code: " + statusLine.getStatusCode());
+                    failedLoadingPosts();
+                }*/
+            } catch(Exception ex) {
+                Log.e(TAG, "Failed to send HTTP POST request due to: " + ex);
+                //failedLoadingPosts();
+            }
+            return null;
+        }
+    }
+
+    public void reRollShowPopup(View v){
+        Dialog myDialog = new Dialog(v.getContext(), R.style.LoadingDialog);
+        myDialog.setContentView(R.layout.dialog_logging_in);
+
+        //TextView txtRollTotal = (TextView) myDialog.findViewById(R.id.txtRollTotal);
+        //TextView txtSequenceData = (TextView) myDialog.findViewById(R.id.txtSequenceData);
+
+        //txtRollTotal.setText(String.valueOf(lastTotal));
+        //txtSequenceData.setText(sequenceData);
+        myDialog.show();
     }
 
 }
