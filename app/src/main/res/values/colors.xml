@@ -2,6 +2,7 @@
 <resources>
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
+    <color name="colorAccent">#ffa500</color>
     <color name="panelTransparency">#1a000000</color>
+    <color name="dialogTransparency">#80000000</color>
 </resources>
