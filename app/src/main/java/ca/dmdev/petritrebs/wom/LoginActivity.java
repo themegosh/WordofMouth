@@ -215,34 +215,34 @@ public class LoginActivity extends AppCompatActivity {
 
                         //request friends data
                         GraphRequest friendsGraph = new GraphRequest(
-                                accessToken,
-                                "me/friends",
-                                null,
-                                HttpMethod.GET,
-                                new GraphRequest.Callback() {
-                                    public void onCompleted(GraphResponse response) {
-                                        if (response.getError() != null) {
-                                            // handle error
-                                            Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
-                                        } else {
-                                            Log.d(TAG, "=================FRIENDS=====================");
-                                            facebookFriends = response.getJSONObject();
-                                            Log.d(TAG, facebookFriends.toString());
+                            accessToken,
+                            "me/friends",
+                            null,
+                            HttpMethod.GET,
+                            new GraphRequest.Callback() {
+                                public void onCompleted(GraphResponse response) {
+                                    if (response.getError() != null) {
+                                        // handle error
+                                        Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
+                                    } else {
+                                        Log.d(TAG, "=================FRIENDS=====================");
+                                        facebookFriends = response.getJSONObject();
+                                        Log.d(TAG, facebookFriends.toString());
 
-                                            //this code will need to go elsewhere
-                                            /*try {
-                                                Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
-                                            }
-                                            catch (Exception e)
-                                            {
-                                                Log.e(TAG, e.getMessage());
-                                            }*/
-
-
-                                            new UpdateExternalDb().execute(facebookUser, facebookFriends);
+                                        //this code will need to go elsewhere
+                                        /*try {
+                                            Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
                                         }
+                                        catch (Exception e)
+                                        {
+                                            Log.e(TAG, e.getMessage());
+                                        }*/
+
+
+                                        new UpdateExternalDb().execute(facebookUser, facebookFriends);
                                     }
                                 }
+                            }
                         );
                         friendsGraph.executeAsync();
                     }
