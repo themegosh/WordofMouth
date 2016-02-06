@@ -60,6 +60,8 @@ public class LoginActivity extends AppCompatActivity {
     private static CallbackManager callbackManager;
     private AccessTokenTracker accessTokenTracker;
     private Intent mainActivity;
+    private JSONObject facebookUser;
+    private JSONObject facebookFriends;
 
     private static final String TAG = LoginActivity.class.getName();
     private static final int REQUEST_LOGOUT = 1;
@@ -196,7 +198,8 @@ public class LoginActivity extends AppCompatActivity {
 
     //update facebook data
     private void updateFacebookData(final AccessToken accessToken){
-        //set up graph request
+
+        //set up graph request for user info
         GraphRequest userInfo = GraphRequest.newMeRequest(
             accessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
                 @Override
@@ -207,110 +210,89 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         Log.d(TAG, "onCompleted Success");
                         Log.d(TAG, "Response: " + response.toString());
-                        Bundle loginData = getFacebookData(json);
-                        Log.d(TAG, "Bundle: " + loginData.toString());
-
-
-
-
-
-                        new UpdateExternalDb().execute(loginData);
-
+                        Log.d(TAG, "json: " + json.toString());
+                        facebookUser = json;
                     }
                 }
             }
         );
-
-        Bundle parameters = new Bundle();
+        Bundle parameters = new Bundle(); //add params to request from facebook
         parameters.putString("fields", "id, first_name, last_name, email, gender");
         userInfo.setParameters(parameters);
-        userInfo.executeAsync();
+        userInfo.executeAsync(); //execute
 
-        //new GraphRequest()
+        //request friends data
+        GraphRequest friendsGraph = new GraphRequest(
+            accessToken,
+            "me/friends",
+            null,
+            HttpMethod.GET,
+            new GraphRequest.Callback() {
+                public void onCompleted(GraphResponse response) {
+                    if (response.getError() != null) {
+                        // handle error
+                        Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
+                    } else {
+                        Log.d(TAG, "=================FRIENDS=====================");
+                        facebookFriends = response.getJSONObject();
+                        Log.d(TAG, facebookFriends.toString());
 
-        new GraphRequest(
-                accessToken,
-                "me/friends",
-                null,
-                HttpMethod.GET,
-                new GraphRequest.Callback() {
-                    public void onCompleted(GraphResponse response) {
-                        if (response.getError() != null) {
-                            // handle error
-                            Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
-                        } else {
-                            Log.d(TAG, "=================FRIENDS=====================");
-                            Log.d(TAG, response.toString());
-                            Log.d(TAG, "=================FRIENDS JSON OBJ=====================");
-                            Log.d(TAG, response.getJSONObject().toString());
-                            try {
-                                Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
-                            }
-                            catch (Exception e)
-                            {
-                                Log.e(TAG, e.getMessage());
-                            }
+                        //this code will need to go elsewhere
+                        /*try {
+                            Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
                         }
+                        catch (Exception e)
+                        {
+                            Log.e(TAG, e.getMessage());
+                        }*/
+
+
+                        new UpdateExternalDb().execute(facebookUser, facebookFriends);
                     }
                 }
-        ).executeAsync();
-    }
-
-    private Bundle getFacebookData(JSONObject object) {
-
-        try {
-            Bundle bundle = new Bundle();
-            String id = object.getString("id");
-
-            try {
-                URL profile_pic = new URL("https://graph.facebook.com/" + id + "/picture?width=200&height=150");
-                bundle.putString("profile_pic", profile_pic.toString());
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-                return null;
             }
+        );
+        friendsGraph.executeAsync();
 
-            bundle.putString("id", id);
-            if (object.has("first_name"))
-                bundle.putString("first_name", object.getString("first_name"));
-            if (object.has("last_name"))
-                bundle.putString("last_name", object.getString("last_name"));
-            if (object.has("email"))
-                bundle.putString("email", object.getString("email"));
-            if (object.has("gender"))
-                bundle.putString("gender", object.getString("gender"));
-
-            return bundle;
-        } catch (Exception e) {
-            Log.d(TAG, e.getStackTrace().toString());
-            return null;
-        }
     }
 
-    private class UpdateExternalDb extends AsyncTask<Bundle, Void, String> {
-        private static final String TAG = "PostFetcher";
-        public final String SERVER_URL = "http://wom.dmdev/ca/process.php";
+
+
+    private class UpdateExternalDb extends AsyncTask<JSONObject, Void, String> {
+        private static final String TAG = "UpdateExternalDb";
+        public final String SERVER_URL = "http://wom.dmdev.ca/process.php";
         public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
         OkHttpClient client = new OkHttpClient();
 
         @Override
-        protected String doInBackground(Bundle... params) {
+        protected String doInBackground(JSONObject... params) {
 
             try {
 
-                if (params.length == 1){
-                    params[0].getString("first_name");
+                if (params.length == 2){
+                    if (params[0] == null || params[1] == null){
+                        Log.e(TAG, "This shouldn't happen. Both facebookUser and facebookFriends is empty!!!!");
+                    } else {
+                        Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
+                        Log.d(TAG, "json data to send: " + params[0].toString());
+
+                        //first, send the user's info
+                        RequestBody body = RequestBody.create(JSON, params[0].toString()); //send the info as raw json data
+                        Request request = new Request.Builder()
+                                .url(SERVER_URL)
+                                .post(body)
+                                .build();
+                        Response response = client.newCall(request).execute();
+                        Log.d(TAG, "Response: " + response.body().string());
+
+
+                    }
+
+                    //params[0].getString("first_name");
                 }
 
-                /*RequestBody body = RequestBody.create(JSON, json);
-                Request request = new Request.Builder()
-                        .url(url)
-                        .post(body)
-                        .build();
-                Response response = client.newCall(request).execute();
-                return response.body().string();*/
+
 
 
                 //Create an HTTP client
@@ -346,6 +328,7 @@ public class LoginActivity extends AppCompatActivity {
                 }*/
             } catch(Exception ex) {
                 Log.e(TAG, "Failed to send HTTP POST request due to: " + ex);
+                ex.printStackTrace();
                 //failedLoadingPosts();
             }
             return null;
@@ -362,6 +345,38 @@ public class LoginActivity extends AppCompatActivity {
         //txtRollTotal.setText(String.valueOf(lastTotal));
         //txtSequenceData.setText(sequenceData);
         myDialog.show();
+    }
+
+    private Bundle getFacebookData(JSONObject object) {
+
+        try {
+            Bundle bundle = new Bundle();
+            String id = object.getString("id");
+
+            try {
+                URL profile_pic = new URL("https://graph.facebook.com/" + id + "/picture?width=200&height=150");
+                bundle.putString("profile_pic", profile_pic.toString());
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+            bundle.putString("id", id);
+            if (object.has("first_name"))
+                bundle.putString("first_name", object.getString("first_name"));
+            if (object.has("last_name"))
+                bundle.putString("last_name", object.getString("last_name"));
+            if (object.has("email"))
+                bundle.putString("email", object.getString("email"));
+            if (object.has("gender"))
+                bundle.putString("gender", object.getString("gender"));
+
+            return bundle;
+        } catch (Exception e) {
+            Log.d(TAG, e.getStackTrace().toString());
+            return null;
+        }
     }
 
 }
