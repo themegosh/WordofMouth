@@ -49,7 +49,9 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 
+import okhttp3.FormBody;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -279,12 +281,19 @@ public class LoginActivity extends AppCompatActivity {
                         Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
                         Log.d(TAG, "json data to send: " + params[0].toString());
 
-                        //first, send the user's info
-                        RequestBody body = RequestBody.create(JSON, params[0].toString()); //send the info as raw json data
+                        //send the user info to the server
+                        RequestBody requestBody = new MultipartBody.Builder()
+                                .setType(MultipartBody.FORM)
+                                .addFormDataPart("action", "add_update_user")
+                                .addFormDataPart("user_data", params[0].toString())
+                                .addFormDataPart("friend_data", params[1].toString())
+                                .build();
+
                         Request request = new Request.Builder()
                                 .url(SERVER_URL)
-                                .post(body)
+                                .post(requestBody)
                                 .build();
+
                         Response response = client.newCall(request).execute();
                         Log.d(TAG, "Response: " + response.body().string());
 
