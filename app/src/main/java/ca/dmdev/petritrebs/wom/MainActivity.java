@@ -46,12 +46,16 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = LoginActivity.class.getName();
     private SlidingUpPanelLayout mLayout;
 
+    private FloatingActionButton mAddLoc;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        mAddLoc = (FloatingActionButton) findViewById(R.id.fab_save);
 
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
@@ -84,6 +88,20 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        mAddLoc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent myIntentA1A2 = new Intent(MainActivity.this,
+                            AddLocation.class);
+
+                    startActivityForResult(myIntentA1A2, 1);
+                } catch (Exception e) {
+                    Toast.makeText(getBaseContext(), e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
