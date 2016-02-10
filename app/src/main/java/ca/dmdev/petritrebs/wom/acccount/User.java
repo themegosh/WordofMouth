@@ -1,7 +1,7 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.petritrebs.wom.acccount;
 
 /**
- * Created by mathe_000 on 2016-02-05.
+ * Created by mathe_000 on 2016-02-08.
  */
 public class User {
     private int id;

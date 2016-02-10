@@ -41,7 +41,16 @@
                     android:layout_height="?attr/actionBarSize"
                     android:background="?attr/colorPrimary"
                     android:layout_gravity="end"
-                    app:popupTheme="@style/AppTheme.PopupOverlay"/>
+                    app:popupTheme="@style/AppTheme.PopupOverlay">
+                    <fragment
+                        android:id="@+id/autocomplete_fragment"
+                        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                        app:theme="@style/Widget.AppCompat.ActionBar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </android.support.v7.widget.Toolbar>
+
+
             </android.support.design.widget.AppBarLayout>
 
             <fragment
@@ -115,4 +124,38 @@
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_main"
         app:menu="@menu/activity_main_drawer" />
+
+
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/dialogTransparency"
+        android:id="@+id/view_loading"
+        android:visibility="gone">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Test Overlay for loading."/>
+
+        <ProgressBar
+            android:id="@+id/pbHeaderProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_weight="2" >
+        </ProgressBar>
+
+        <Button
+            android:id="@+id/btnCloseLoading"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close me"/>
+
+    </FrameLayout>
+
 </android.support.v4.widget.DrawerLayout>

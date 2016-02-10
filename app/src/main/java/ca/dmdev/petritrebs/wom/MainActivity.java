@@ -29,8 +29,16 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.Toast;
+
+
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -52,7 +60,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
+        toolbar.setTitle("");
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -149,6 +157,7 @@ public class MainActivity extends AppCompatActivity
         lv.setAdapter(arrayAdapter);
 
 
+
     }
 
     @Override
@@ -156,15 +165,14 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else {
+            //prevent the user from going back to the login activity
+            //super.onBackPressed(); //this should be commented out
+            Intent logout = new Intent();
+            logout.putExtra("backPressed", true);
+            setResult(Activity.RESULT_OK, logout);
+            finish();
         }
-
-        //prevent the user from going back to the login activity
-        //super.onBackPressed(); //this should be commented out
-        Intent logout = new Intent();
-        logout.putExtra("backPressed", true);
-        setResult(Activity.RESULT_OK, logout);
-        finish();
-
     }
 
     @Override
@@ -172,17 +180,7 @@ public class MainActivity extends AppCompatActivity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
-        MenuItem searchItem = menu.findItem(R.id.action_search);
 
-        SearchManager searchManager = (SearchManager) MainActivity.this.getSystemService(Context.SEARCH_SERVICE);
-
-        SearchView searchView = null;
-        if (searchItem != null) {
-            searchView = (SearchView) searchItem.getActionView();
-        }
-        if (searchView != null) {
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(MainActivity.this.getComponentName()));
-        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -194,7 +192,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_search) {
+        if (id == R.id.action_filter) {
             return true;
         }
 

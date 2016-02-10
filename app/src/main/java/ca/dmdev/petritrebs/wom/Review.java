@@ -2,6 +2,8 @@ package ca.dmdev.petritrebs.wom;
 
 import java.util.List;
 
+import ca.dmdev.petritrebs.wom.acccount.User;
+
 /**
  * Created by mathe_000 on 2016-02-05.
  */
