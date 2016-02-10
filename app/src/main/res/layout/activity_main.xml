@@ -18,7 +18,7 @@
         android:gravity="bottom"
         sothree:umanoPanelHeight="68dp"
         sothree:umanoShadowHeight="6dp"
-        sothree:umanoParallaxOffset="0dp"
+        sothree:umanoParallaxOffset="100dp"
         sothree:umanoDragView="@+id/sliderBar"
         sothree:umanoOverlay="true"
         sothree:umanoFadeColor="@color/panelTransparency"

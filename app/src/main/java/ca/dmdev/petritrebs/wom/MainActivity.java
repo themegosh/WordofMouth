@@ -58,8 +58,6 @@ public class MainActivity extends AppCompatActivity
     private SlidingUpPanelLayout mLayout;
     private Toolbar toolbar;
 
-    private FloatingActionButton mAddLoc;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,7 +65,7 @@ public class MainActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
-        mAddLoc = (FloatingActionButton) findViewById(R.id.fab_save);
+        FloatingActionButton mAddLoc = (FloatingActionButton) findViewById(R.id.fab_save);
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
