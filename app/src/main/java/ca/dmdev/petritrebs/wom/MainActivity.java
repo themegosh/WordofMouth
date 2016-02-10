@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
@@ -27,10 +28,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -53,20 +56,28 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = LoginActivity.class.getName();
     private SlidingUpPanelLayout mLayout;
+    private Toolbar toolbar;
+
+    private FloatingActionButton mAddLoc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
+        mAddLoc = (FloatingActionButton) findViewById(R.id.fab_save);
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+                AppBarLayout.LayoutParams lp = (AppBarLayout.LayoutParams) toolbar.getLayoutParams();
+                //AppBarLayout.LayoutParams lp = new AppBarLayout.LayoutParams(AppBarLayout.LayoutParams.WRAP_CONTENT, AppBarLayout.LayoutParams.WRAP_CONTENT);
+                lp.setMargins(0, (int)(slideOffset*250f), 0, 0); //super experimental absolute positioning for toolbar
+                toolbar.setLayoutParams(lp);
             }
 
             @Override
@@ -92,6 +103,20 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
+        mAddLoc.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent myIntentA1A2 = new Intent(MainActivity.this,
+                            AddLocation.class);
+
+                    startActivityForResult(myIntentA1A2, 1);
+                } catch (Exception e) {
+                    Toast.makeText(getBaseContext(), e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
 
         /*FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
