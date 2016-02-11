@@ -1,29 +1,18 @@
 package ca.dmdev.petritrebs.wom;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.FragmentManager;
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v4.app.DialogFragment;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.SearchView;
-import android.util.Base64;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -34,43 +23,19 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.animation.Transformation;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.places.Place;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.common.GoogleApiAvailability;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
-import com.nineoldandroids.animation.ValueAnimator;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.Signature;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -99,71 +64,15 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setTitle("");
-        fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_save);
         fragmentManager = getFragmentManager();
 
-        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
-            @Override
-            public void onPanelSlide(View panel, float slideOffset) {
-                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
-
-                //move the FAB based on sliding bar's offset
-                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fabAddLocation.getLayoutParams();
-                params.bottomMargin = 200 + (int)(((0-1)*slideOffset) * 150);
-                fabAddLocation.setLayoutParams(params);
-
-            }
-
-            @Override
-            public void onPanelExpanded(View panel) {
-                Log.i(TAG, "onPanelExpanded");
-            }
-
-            @Override
-            public void onPanelCollapsed(View panel) {
-                Log.i(TAG, "onPanelCollapsed");
-            }
-
-            @Override
-            public void onPanelAnchored(View panel) {
-                Log.i(TAG, "onPanelAnchored");
-            }
-
-            @Override
-            public void onPanelHidden(View panel) {
-                Log.i(TAG, "onPanelHidden");
-            }
-        });
-
-        fabAddLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent myIntentA1A2 = new Intent(MainActivity.this,
-                            AddLocation.class);
-
-                    startActivityForResult(myIntentA1A2, 1);
-                } catch (Exception e) {
-                    Toast.makeText(getBaseContext(), e.getMessage(),
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
-        toggle.syncState();
-
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
-
-        setMapView();
+        //Initialize activity related resources, the order here is important
+        initializeToolbar();
+        initializeDrawerLayout();
+        initializeSlidingPanel();
+        initializeFab();
+        initializeNavPanel();
+        initializeMap();
     }
 
     @Override
@@ -270,6 +179,7 @@ public class MainActivity extends AppCompatActivity
         switch(requestCode) {
             case LOCATION_REQUEST:
                 if (canAccessLocation()) {
+                    
                 }
                 else {
                 }
@@ -277,7 +187,80 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void setMapView() {
+    private void initializeSlidingPanel(){
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+
+                //move the FAB based on sliding bar's offset
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fabAddLocation.getLayoutParams();
+                params.bottomMargin = 200 + (int)(((0-1)*slideOffset) * 150);
+                fabAddLocation.setLayoutParams(params);
+
+            }
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                Log.i(TAG, "onPanelExpanded");
+            }
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                Log.i(TAG, "onPanelCollapsed");
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+                Log.i(TAG, "onPanelAnchored");
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+                Log.i(TAG, "onPanelHidden");
+            }
+        });
+    }
+
+    private void initializeToolbar(){
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        toolbar.setTitle("");
+    }
+
+    private void initializeDrawerLayout(){
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+    }
+
+    private void initializeFab(){
+        fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_save);
+        fabAddLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent myIntentA1A2 = new Intent(MainActivity.this,
+                            AddLocation.class);
+
+                    startActivityForResult(myIntentA1A2, 1);
+                } catch (Exception e) {
+                    Toast.makeText(getBaseContext(), e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    private void initializeNavPanel(){
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void initializeMap() {
         String LocationId = "";
         String CityName = "";
         String imageURL = "";
@@ -285,8 +268,8 @@ public class MainActivity extends AppCompatActivity
         try {
             MapsInitializer.initialize(this);
 
-            switch (GooglePlayServicesUtil
-                    .isGooglePlayServicesAvailable(this)) {
+
+            switch (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)) {
                 case ConnectionResult.SUCCESS:
                     // Toast.makeText(getActivity(), "SUCCESS", Toast.LENGTH_SHORT)
                     // .show();
@@ -316,7 +299,7 @@ public class MainActivity extends AppCompatActivity
 
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                                .zoom(17)                   // Sets the zoom
+                                .zoom(14)                   // Sets the zoom
                                 .bearing(0)                // Sets the orientation of the camera to north
                                 .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                                 .build();                   // Creates a CameraPosition from the builder
@@ -330,17 +313,12 @@ public class MainActivity extends AppCompatActivity
                     map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 
                     break;
-                case ConnectionResult.SERVICE_MISSING:
-
-                    break;
-                case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
-
-                    break;
                 default:
-
+                    Log.e(TAG, "Unknown PlayServiceAvailability: " + GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this));
+                    break;
             }
         } catch (Exception e) {
-            Log.e(TAG, "setMapView error: " + e.toString());
+            Log.e(TAG, "initializeMap error: " + e.toString());
             e.printStackTrace();
         }
 
