@@ -308,7 +308,7 @@ public class MainActivity extends AppCompatActivity
 
 
                     Criteria criteria = new Criteria();
-                    Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+                    Location location = getMyLocation();
                     if (location != null)
                     {
                         map.animateCamera(CameraUpdateFactory.newLatLngZoom(
@@ -317,14 +317,13 @@ public class MainActivity extends AppCompatActivity
                         CameraPosition cameraPosition = new CameraPosition.Builder()
                                 .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
                                 .zoom(17)                   // Sets the zoom
-                                .bearing(90)                // Sets the orientation of the camera to east
+                                .bearing(0)                // Sets the orientation of the camera to north
                                 .tilt(40)                   // Sets the tilt of the camera to 30 degrees
                                 .build();                   // Creates a CameraPosition from the builder
                         map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
                     }
 
-                    map.setIndoorEnabled(true);
                     map.setMyLocationEnabled(true);
                     //map.moveCamera(CameraUpdateFactory.zoomTo(5));
 
@@ -345,6 +344,24 @@ public class MainActivity extends AppCompatActivity
             e.printStackTrace();
         }
 
+    }
+
+    private Location getMyLocation() {
+        // Get location from GPS if it's available
+        LocationManager lm = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
+        Location myLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+
+        // Location wasn't found, check the next most accurate place for the current location
+        if (myLocation == null) {
+            Criteria criteria = new Criteria();
+            criteria.setAccuracy(Criteria.ACCURACY_COARSE);
+            // Finds a provider that matches the criteria
+            String provider = lm.getBestProvider(criteria, true);
+            // Use the provider to get the last known location
+            myLocation = lm.getLastKnownLocation(provider);
+        }
+
+        return myLocation;
     }
 
 }
