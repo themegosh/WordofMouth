@@ -29,12 +29,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.view.animation.Transformation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 
@@ -43,6 +45,7 @@ import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
+import com.nineoldandroids.animation.ValueAnimator;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 import java.security.MessageDigest;
@@ -57,6 +60,7 @@ public class MainActivity extends AppCompatActivity
     private static final String TAG = LoginActivity.class.getName();
     private SlidingUpPanelLayout mLayout;
     private Toolbar toolbar;
+    private FloatingActionButton fabAddLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,29 +69,29 @@ public class MainActivity extends AppCompatActivity
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
-        FloatingActionButton mAddLoc = (FloatingActionButton) findViewById(R.id.fab_save);
+        fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_save);
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
-                Log.i(TAG, "onPanelSlide, offset " + slideOffset);
-                AppBarLayout.LayoutParams lp = (AppBarLayout.LayoutParams) toolbar.getLayoutParams();
-                //AppBarLayout.LayoutParams lp = new AppBarLayout.LayoutParams(AppBarLayout.LayoutParams.WRAP_CONTENT, AppBarLayout.LayoutParams.WRAP_CONTENT);
-                lp.setMargins(0, (int)(slideOffset*250f), 0, 0); //super experimental absolute positioning for toolbar
-                toolbar.setLayoutParams(lp);
+                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
+
+                //move the FAB based on sliding bar's offset
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fabAddLocation.getLayoutParams();
+                params.bottomMargin = 200 + (int)(((0-1)*slideOffset) * 150);
+                fabAddLocation.setLayoutParams(params);
+
             }
 
             @Override
             public void onPanelExpanded(View panel) {
                 Log.i(TAG, "onPanelExpanded");
-
             }
 
             @Override
             public void onPanelCollapsed(View panel) {
                 Log.i(TAG, "onPanelCollapsed");
-
             }
 
             @Override
@@ -101,7 +105,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        mAddLoc.setOnClickListener(new View.OnClickListener() {
+        fabAddLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
