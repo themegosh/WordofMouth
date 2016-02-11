@@ -2,12 +2,17 @@ package ca.dmdev.petritrebs.wom;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.FragmentManager;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.FloatingActionButton;
@@ -40,11 +45,23 @@ import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.nineoldandroids.animation.ValueAnimator;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
@@ -53,14 +70,30 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private static final String[] INITIAL_PERMS={
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
+        android.Manifest.permission.READ_CONTACTS
+    };
+
+    private static final String[] LOCATION_PERMS={
+        android.Manifest.permission.ACCESS_FINE_LOCATION
+    };
+
+    private static final int INITIAL_REQUEST=1337;
+    private static final int LOCATION_REQUEST=INITIAL_REQUEST+3;
 
     private static final String TAG = LoginActivity.class.getName();
     private SlidingUpPanelLayout mLayout;
     private Toolbar toolbar;
     private FloatingActionButton fabAddLocation;
+    private static GoogleMap map;
+    public LocationManager locationManager;
+    private FragmentManager fragmentManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +103,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
         fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_save);
+        fragmentManager = getFragmentManager();
 
         mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -129,8 +163,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
-
+        setMapView();
     }
 
     @Override
@@ -223,5 +256,95 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
+    private boolean canAccessLocation() {
+        return(hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION));
+    }
+    private boolean hasPermission(String perm) {
+        return(PackageManager.PERMISSION_GRANTED==checkSelfPermission(perm));
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+
+        switch(requestCode) {
+            case LOCATION_REQUEST:
+                if (canAccessLocation()) {
+                }
+                else {
+                }
+                break;
+        }
+    }
+
+    private void setMapView() {
+        String LocationId = "";
+        String CityName = "";
+        String imageURL = "";
+
+        try {
+            MapsInitializer.initialize(this);
+
+            switch (GooglePlayServicesUtil
+                    .isGooglePlayServicesAvailable(this)) {
+                case ConnectionResult.SUCCESS:
+                    // Toast.makeText(getActivity(), "SUCCESS", Toast.LENGTH_SHORT)
+                    // .show();
+
+                    // Gets to GoogleMap from the MapView and does initialization
+                    // stuff
+
+                    if (!canAccessLocation()) {
+                        requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
+                }
+
+                    locationManager = ((LocationManager) this
+                            .getSystemService(Context.LOCATION_SERVICE));
+
+                    map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
+                        .getMap();
+
+                    map.clear();
+
+
+                    Criteria criteria = new Criteria();
+                    Location location = locationManager.getLastKnownLocation(locationManager.getBestProvider(criteria, false));
+                    if (location != null)
+                    {
+                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(location.getLatitude(), location.getLongitude()), 13));
+
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                                .zoom(17)                   // Sets the zoom
+                                .bearing(90)                // Sets the orientation of the camera to east
+                                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                                .build();                   // Creates a CameraPosition from the builder
+                        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+                    }
+
+                    map.setIndoorEnabled(true);
+                    map.setMyLocationEnabled(true);
+                    //map.moveCamera(CameraUpdateFactory.zoomTo(5));
+
+                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+
+                    break;
+                case ConnectionResult.SERVICE_MISSING:
+
+                    break;
+                case ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED:
+
+                    break;
+                default:
+
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "setMapView error: " + e.toString());
+            e.printStackTrace();
+        }
+
+    }
 
 }
