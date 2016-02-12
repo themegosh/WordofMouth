@@ -25,30 +25,25 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapsInitializer;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback {
 
     private static final String[] INITIAL_PERMS={
         android.Manifest.permission.ACCESS_FINE_LOCATION,
         android.Manifest.permission.READ_CONTACTS
     };
-
-    private static final String[] LOCATION_PERMS={
-        android.Manifest.permission.ACCESS_FINE_LOCATION
-    };
-
     private static final int INITIAL_REQUEST=1337;
     private static final int LOCATION_REQUEST=INITIAL_REQUEST+3;
 
@@ -56,8 +51,9 @@ public class MainActivity extends AppCompatActivity
     private SlidingUpPanelLayout mLayout;
     private Toolbar toolbar;
     private FloatingActionButton fabAddLocation;
-    private static GoogleMap map;
-    public LocationManager locationManager;
+    private static SupportMapFragment mapFragment;
+    private GoogleMap map;
+    private LocationManager locationManager;
     private FragmentManager fragmentManager;
 
     @Override
@@ -165,21 +161,14 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private boolean canAccessLocation() {
-        return(hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION));
-    }
-    private boolean hasPermission(String perm) {
-        return(PackageManager.PERMISSION_GRANTED==checkSelfPermission(perm));
-    }
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
         switch(requestCode) {
             case LOCATION_REQUEST:
                 if (canAccessLocation()) {
-                    
+                    centerMapOnMyLocation();
+                    Log.d(TAG, "Permission granted to access location. Attempting to center on GPS.");
                 }
                 else {
                 }
@@ -260,68 +249,52 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+
+    @Override
+    public void onMapReady(GoogleMap map) {
+        this.map = map;
+        map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        map.setMyLocationEnabled(true);
+        map.setTrafficEnabled(true);
+        map.setIndoorEnabled(true);
+        map.setBuildingsEnabled(true);
+        map.getUiSettings().setZoomControlsEnabled(true);
+
+        centerMapOnMyLocation();
+    }
+
     private void initializeMap() {
-        String LocationId = "";
-        String CityName = "";
-        String imageURL = "";
 
-        try {
-            MapsInitializer.initialize(this);
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
 
 
-            switch (GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this)) {
-                case ConnectionResult.SUCCESS:
-                    // Toast.makeText(getActivity(), "SUCCESS", Toast.LENGTH_SHORT)
-                    // .show();
+    }
 
-                    // Gets to GoogleMap from the MapView and does initialization
-                    // stuff
+    private boolean canAccessLocation() {
+        return(hasPermission(android.Manifest.permission.ACCESS_FINE_LOCATION));
+    }
+    private boolean hasPermission(String perm) {
+        return(PackageManager.PERMISSION_GRANTED==checkSelfPermission(perm));
+    }
 
-                    if (!canAccessLocation()) {
-                        requestPermissions(INITIAL_PERMS, INITIAL_REQUEST);
-                }
+    private void centerMapOnMyLocation(){
+        Location location = getMyLocation();
+        if (location != null)
+        {
+            map.animateCamera(CameraUpdateFactory.newLatLngZoom(
+                    new LatLng(location.getLatitude(), location.getLongitude()), 13));
 
-                    locationManager = ((LocationManager) this
-                            .getSystemService(Context.LOCATION_SERVICE));
+            CameraPosition cameraPosition = new CameraPosition.Builder()
+                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                    .zoom(14)                   // Sets the zoom
+                    .bearing(0)                // Sets the orientation of the camera to north
+                    .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                    .build();                   // Creates a CameraPosition from the builder
+            map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-                    map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map))
-                        .getMap();
-
-                    map.clear();
-
-
-                    Criteria criteria = new Criteria();
-                    Location location = getMyLocation();
-                    if (location != null)
-                    {
-                        map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                                new LatLng(location.getLatitude(), location.getLongitude()), 13));
-
-                        CameraPosition cameraPosition = new CameraPosition.Builder()
-                                .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
-                                .zoom(14)                   // Sets the zoom
-                                .bearing(0)                // Sets the orientation of the camera to north
-                                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                                .build();                   // Creates a CameraPosition from the builder
-                        map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
-
-                    }
-
-                    map.setMyLocationEnabled(true);
-                    //map.moveCamera(CameraUpdateFactory.zoomTo(5));
-
-                    map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
-                    break;
-                default:
-                    Log.e(TAG, "Unknown PlayServiceAvailability: " + GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(this));
-                    break;
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "initializeMap error: " + e.toString());
-            e.printStackTrace();
         }
-
     }
 
     private Location getMyLocation() {
