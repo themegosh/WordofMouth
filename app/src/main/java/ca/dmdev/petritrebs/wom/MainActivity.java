@@ -462,7 +462,10 @@ public class MainActivity extends AppCompatActivity
             // Format details of the place for display and show it in a TextView.
             lblPlaceTitle.setText("Name: "+ place.getName());
             //formatPlaceDetails(getResources(), place.getName(), place.getId(), place.getAddress(), place.getPhoneNumber(),                    place.getWebsiteUri()));
-            lblScrollView.setText("ID: " + place.getId() + "\nAddress: " + place.getAddress() + "\nLat/Lang: " + place.getLatLng().toString() + "\nPhone: " + place.getPhoneNumber() + "\nWebsite: " + place.getWebsiteUri().toString());
+            String website = "";
+            if (place.getWebsiteUri() != null)
+                website = place.getWebsiteUri().toString();
+            lblScrollView.setText("ID: " + place.getId() + "\nAddress: " + place.getAddress() + "\nLat/Lang: " + place.getLatLng().toString() + "\nPhone: " + place.getPhoneNumber() + "\nWebsite: " + website);
 
             //anchor the panel
             mLayout.setAnchorPoint(0.7f);
