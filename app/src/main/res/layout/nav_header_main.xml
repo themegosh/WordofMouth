@@ -29,8 +29,14 @@
             android:id="@+id/btnSettings"
             android:layout_alignParentStart="false"
             android:layout_alignParentEnd="true"
-            android:src="@android:drawable/ic_menu_preferences"
+            android:src="@drawable/ic_settings_white_48dp"
+            android:paddingTop="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingRight="8dp"
+            android:elevation="16dp"
             android:layout_alignParentRight="true"
+            android:background="@color/transparent"
             android:contentDescription="Settings"
             android:layout_alignParentLeft="true" />
 

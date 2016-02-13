@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "ca.dmdev.petritrebs.wom"
-        minSdkVersion 15
+        minSdkVersion 16
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -20,7 +20,10 @@ android {
     }
 }
 
-repositories { mavenCentral() }
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+}
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
@@ -29,9 +32,11 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.facebook.android:facebook-android-sdk:4.6.0'
     compile 'com.sothree.slidinguppanel:library:3.2.1'
-    compile 'com.google.code.gson:gson:2.5'
     compile 'com.squareup.okhttp3:okhttp:3.0.1'
-    compile 'com.google.android.gms:play-services:8.4.0'
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
+    compile 'com.google.android.gms:play-services-location:8.4.0'
     compile 'com.android.support:support-v4:23.1.1'
     compile 'com.google.maps.android:android-maps-utils:0.3.4'
+    compile 'com.github.vajro:MaterialDesignLibrary:1.6'
+    compile 'com.google.code.gson:gson:2.5'
 }

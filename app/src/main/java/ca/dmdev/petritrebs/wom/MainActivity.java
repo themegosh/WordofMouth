@@ -1,5 +1,7 @@
 package ca.dmdev.petritrebs.wom;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -30,13 +32,17 @@ import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.gc.materialdesign.views.Slider;
+import com.gc.materialdesign.widgets.Dialog;
 import com.google.android.gms.common.ConnectionResult;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.Releasable;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.places.*;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -44,6 +50,8 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -62,6 +70,7 @@ public class MainActivity extends AppCompatActivity
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
     private static final float PANEL_ANCHORED = 0.7f;
     private static final float PANEL_EXPANDED = 1.0f;
+    private static final int DEFAULT_PLACE_DISTANCE = 1000;
 
     private static final String TAG = MainActivity.class.getName();
     private SlidingUpPanelLayout slidingPanelLayout;
@@ -74,6 +83,13 @@ public class MainActivity extends AppCompatActivity
     private TextView lblPlaceTitle;
     private TextView lblScrollView;
     private ImageView imgToggleSlidingPanel;
+    private Circle distanceCircle;
+    private Location lastLocation;
+
+    //slider view related
+    private RelativeLayout viewDistanceSelector;
+    private Slider sliderDistance;
+    private ImageButton btnSliderCheck;
 
     protected GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mAdapter;
@@ -94,6 +110,7 @@ public class MainActivity extends AppCompatActivity
         initializeNavPanel();
         initializeMap();
         initializePlacesApi();
+        initializeDistanceSlider();
     }
 
     @Override
@@ -133,7 +150,8 @@ public class MainActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.btnClearToolbar) {
-            mAutocompleteView.setText("");
+            if (mAutocompleteView != null)
+                mAutocompleteView.setText("");
             return true;
         }
 
@@ -208,6 +226,10 @@ public class MainActivity extends AppCompatActivity
                     // permission denied, boo! Disable the
                     // functionality that depends on this permission.
                     Log.d(TAG, "onRequestPermissionsResult: Denied");
+
+                    Dialog dialog = new Dialog(MainActivity.this, "Title", "Message");
+                    dialog.show();
+
                 }
                 return;
             }
@@ -231,6 +253,8 @@ public class MainActivity extends AppCompatActivity
         map.getUiSettings().setZoomControlsEnabled(false);
 
         centerMapOnMyLocation();
+
+
     }
 
     private void initializePermissions(){
@@ -268,25 +292,25 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onPanelExpanded(View panel) {
                 Log.i(TAG, "onPanelExpanded");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_24dp);
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_48dp);
             }
 
             @Override
             public void onPanelCollapsed(View panel) {
                 Log.i(TAG, "onPanelCollapsed");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_24dp);
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_48dp);
             }
 
             @Override
             public void onPanelAnchored(View panel) {
                 Log.i(TAG, "onPanelAnchored");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_24dp);
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_48dp);
             }
 
             @Override
             public void onPanelHidden(View panel) {
                 Log.i(TAG, "onPanelHidden");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_24dp);
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_48dp);
             }
         });
     }
@@ -331,25 +355,76 @@ public class MainActivity extends AppCompatActivity
 
     }
     private void initializePlacesApi(){
+        lastLocation = getMyLocation();
+        if (lastLocation != null) {
+            LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), DEFAULT_PLACE_DISTANCE);
 
-        Location location = getMyLocation();
-        LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(location.getLatitude(), location.getLongitude()), 1000);
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, 0 /* clientId */, this)
+                    .addApi(Places.GEO_DATA_API)
+                    .build();
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, 0 /* clientId */, this)
-                .addApi(Places.GEO_DATA_API)
-                .build();
+            mAutocompleteView = (AutoCompleteTextView)
+                    findViewById(R.id.autocomplete_places);
+            mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
 
-        mAutocompleteView = (AutoCompleteTextView)
-                findViewById(R.id.autocomplete_places);
-        mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
+            mAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, latLngBounds,
+                    null);
+            mAutocompleteView.setAdapter(mAdapter);
 
-        mAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, latLngBounds,
-                null);
-        mAutocompleteView.setAdapter(mAdapter);
+            lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
+            lblScrollView = (TextView) findViewById(R.id.lblScrollView);
+        }
+    }
+    private void initializeDistanceSlider(){
+        viewDistanceSelector = (RelativeLayout) findViewById(R.id.viewDistanceSelector);
 
-        lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
-        lblScrollView = (TextView) findViewById(R.id.lblScrollView);
+        btnSliderCheck = (ImageButton) findViewById(R.id.btnConfirmDistance);
+        btnSliderCheck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (distanceCircle != null)
+                    distanceCircle.remove();
+
+                viewDistanceSelector.animate()
+                    .translationY(viewDistanceSelector.getHeight())
+                    .alpha(0.0f)
+                    .setDuration(500)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            viewDistanceSelector.setVisibility(View.GONE);
+                        }
+                    });
+            }
+        });
+
+        sliderDistance = (Slider) findViewById(R.id.sliderDistance);
+        sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
+        sliderDistance.setOnValueChangedListener(
+            new Slider.OnValueChangedListener() {
+                @Override
+                public void onValueChanged(int i) {
+                    if (distanceCircle != null) {
+                        distanceCircle.setRadius(i);
+                    } else {
+                        if (lastLocation != null) {
+                            CircleOptions distanceCircleOptions = new CircleOptions()
+                                    .center(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
+                                    .radius(i)
+                                    .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.black))
+                                    .fillColor(R.color.colorPrimaryDark);
+                            distanceCircle = map.addCircle(distanceCircleOptions);
+                        }
+                    }
+
+                    if (mAdapter != null && lastLocation != null){
+                        mAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), i));
+                    }
+                }
+            }
+        );
     }
     public LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
         LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
@@ -357,14 +432,14 @@ public class MainActivity extends AppCompatActivity
         return new LatLngBounds(southwest, northeast);
     }
     private void centerMapOnMyLocation(){
-        Location location = getMyLocation();
-        if (location != null)
+        lastLocation = getMyLocation();
+        if (lastLocation != null)
         {
             map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(location.getLatitude(), location.getLongitude()), 13));
+                    new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(location.getLatitude(), location.getLongitude()))      // Sets the center of the map to location user
+                    .target(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))      // Sets the center of the map to location user
                     .zoom(14)                   // Sets the zoom
                     .bearing(0)                // Sets the orientation of the camera to north
                     .tilt(40)                   // Sets the tilt of the camera to 30 degrees
@@ -507,7 +582,7 @@ public class MainActivity extends AppCompatActivity
      * @param connectionResult can be inspected to determine the cause of the failure
      */
     @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
+    public void onConnectionFailed( ConnectionResult connectionResult) {
 
         Log.e(TAG, "onConnectionFailed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
