@@ -6,18 +6,14 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.text.Html;
-import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -29,32 +25,29 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.*;
-import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.maps.android.SphericalUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
 public class MainActivity extends AppCompatActivity
@@ -67,9 +60,11 @@ public class MainActivity extends AppCompatActivity
     private static final int INITIAL_REQUEST=1337;
     private static final int LOCATION_REQUEST=INITIAL_REQUEST+3;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
+    private static final float PANEL_ANCHORED = 0.7f;
+    private static final float PANEL_EXPANDED = 1.0f;
 
     private static final String TAG = MainActivity.class.getName();
-    private SlidingUpPanelLayout mLayout;
+    private SlidingUpPanelLayout slidingPanelLayout;
     private Toolbar toolbar;
     private FloatingActionButton fabAddLocation;
     private static SupportMapFragment mapFragment;
@@ -78,6 +73,7 @@ public class MainActivity extends AppCompatActivity
     private FragmentManager fragmentManager;
     private TextView lblPlaceTitle;
     private TextView lblScrollView;
+    private ImageView imgToggleSlidingPanel;
 
     protected GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mAdapter;
@@ -105,6 +101,12 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (slidingPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED) {
+            slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else if (slidingPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED && slidingPanelLayout.getAnchorPoint() == PANEL_ANCHORED){
+            slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+        } else if (slidingPanelLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED) {
+            slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         } else {
             //prevent the user from going back to the login activity
             //super.onBackPressed(); //this should be commented out
@@ -114,7 +116,6 @@ public class MainActivity extends AppCompatActivity
             finish();
         }
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -123,7 +124,6 @@ public class MainActivity extends AppCompatActivity
 
         return super.onCreateOptionsMenu(menu);
     }
-
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
@@ -139,21 +139,20 @@ public class MainActivity extends AppCompatActivity
 
         return super.onOptionsItemSelected(item);
     }
-
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
         if (id == R.id.nav_toggle_anchor) {
-            if (mLayout != null) {
-                if (mLayout.getAnchorPoint() == 1.0f) {
-                    mLayout.setAnchorPoint(0.7f);
-                    mLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+            if (slidingPanelLayout != null) {
+                if (slidingPanelLayout.getAnchorPoint() == PANEL_EXPANDED) {
+                    slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
+                    slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
                     item.setTitle("Enable Anchor");
                 } else {
-                    mLayout.setAnchorPoint(1.0f);
-                    mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+                    slidingPanelLayout.setAnchorPoint(PANEL_EXPANDED);
+                    slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
                     item.setTitle("Disable Anchor");
                 }
             }
@@ -190,7 +189,6 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
 
@@ -218,7 +216,6 @@ public class MainActivity extends AppCompatActivity
             // permissions this app might request
         }
     }
-
     @Override
     public void onMapReady(GoogleMap map) {
         this.map = map;
@@ -228,10 +225,10 @@ public class MainActivity extends AppCompatActivity
                 == PackageManager.PERMISSION_GRANTED) {
             map.setMyLocationEnabled(true);
         }
-        map.setTrafficEnabled(true);
+        map.setTrafficEnabled(false);
         map.setIndoorEnabled(true);
         map.setBuildingsEnabled(true);
-        map.getUiSettings().setZoomControlsEnabled(true);
+        map.getUiSettings().setZoomControlsEnabled(false);
 
         centerMapOnMyLocation();
     }
@@ -253,10 +250,10 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
     private void initializeSlidingPanel(){
-        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        mLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+        imgToggleSlidingPanel = (ImageView) findViewById(R.id.imgToggleSlidingPanel);
+        slidingPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        slidingPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
             @Override
             public void onPanelSlide(View panel, float slideOffset) {
                 //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
@@ -271,31 +268,33 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onPanelExpanded(View panel) {
                 Log.i(TAG, "onPanelExpanded");
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_24dp);
             }
 
             @Override
             public void onPanelCollapsed(View panel) {
                 Log.i(TAG, "onPanelCollapsed");
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_24dp);
             }
 
             @Override
             public void onPanelAnchored(View panel) {
                 Log.i(TAG, "onPanelAnchored");
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_24dp);
             }
 
             @Override
             public void onPanelHidden(View panel) {
                 Log.i(TAG, "onPanelHidden");
+                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_24dp);
             }
         });
     }
-
     private void initializeToolbar(){
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
     }
-
     private void initializeDrawerLayout(){
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -303,7 +302,6 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
     }
-
     private void initializeFab(){
         fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_save);
         fabAddLocation.setOnClickListener(new View.OnClickListener() {
@@ -321,12 +319,10 @@ public class MainActivity extends AppCompatActivity
             }
         });
     }
-
     private void initializeNavPanel(){
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
     }
-
     private void initializeMap() {
 
         SupportMapFragment mapFragment =
@@ -334,10 +330,10 @@ public class MainActivity extends AppCompatActivity
         mapFragment.getMapAsync(this);
 
     }
-
     private void initializePlacesApi(){
-        LatLngBounds BOUNDS_TORONTO = new LatLngBounds(
-                new LatLng(43.326385, -78.873712), new LatLng(43.946721, -80.103337));
+
+        Location location = getMyLocation();
+        LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(location.getLatitude(), location.getLongitude()), 1000);
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .enableAutoManage(this, 0 /* clientId */, this)
@@ -348,14 +344,18 @@ public class MainActivity extends AppCompatActivity
                 findViewById(R.id.autocomplete_places);
         mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
 
-        mAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, BOUNDS_TORONTO,
+        mAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, latLngBounds,
                 null);
         mAutocompleteView.setAdapter(mAdapter);
 
         lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
         lblScrollView = (TextView) findViewById(R.id.lblScrollView);
     }
-
+    public LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
+        LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
+        LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
+        return new LatLngBounds(southwest, northeast);
+    }
     private void centerMapOnMyLocation(){
         Location location = getMyLocation();
         if (location != null)
@@ -373,7 +373,6 @@ public class MainActivity extends AppCompatActivity
 
         }
     }
-
     private Location getMyLocation() {
         // Get location from GPS if it's available
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -468,8 +467,8 @@ public class MainActivity extends AppCompatActivity
             lblScrollView.setText("ID: " + place.getId() + "\nAddress: " + place.getAddress() + "\nLat/Lang: " + place.getLatLng().toString() + "\nPhone: " + place.getPhoneNumber() + "\nWebsite: " + website);
 
             //anchor the panel
-            mLayout.setAnchorPoint(0.7f);
-            mLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+            slidingPanelLayout.setAnchorPoint(0.7f);
+            slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
 
             //move the map
             CameraPosition cameraPosition = new CameraPosition.Builder()

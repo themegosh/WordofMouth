@@ -92,6 +92,13 @@
                             android:textSize="14sp"
                             android:gravity="center_vertical"
                             android:paddingLeft="10dp"/>
+
+                        <ImageView
+                            android:id="@+id/imgToggleSlidingPanel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="end"
+                            android:src="@drawable/ic_keyboard_arrow_up_black_24dp"/>
                     </LinearLayout>
                     <!-- Bottom Scrollview content goes in here (location details + review cards) -->
                     <ScrollView
