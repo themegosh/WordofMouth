@@ -270,6 +270,13 @@ public class MainActivity extends AppCompatActivity
         map.setBuildingsEnabled(true);
         map.getUiSettings().setZoomControlsEnabled(false);
 
+        map.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                Log.d(TAG, "Map clicked! Lat: " + latLng.latitude + " Lng: " + latLng.longitude);
+            }
+        });
+
         centerMapOnMyLocation();
 
 
