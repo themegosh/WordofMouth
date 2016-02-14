@@ -42,7 +42,6 @@ import com.google.android.gms.common.ConnectionResult;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.Releasable;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.location.places.*;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -91,9 +90,13 @@ public class MainActivity extends AppCompatActivity
     private Slider sliderDistance;
     private ImageButton btnSliderCheck;
 
+    //search view related
+    private AutoCompleteTextView txtSearch;
+    private MenuItem btnSearch;
+    private MenuItem btnCloseSearch;
+
     protected GoogleApiClient mGoogleApiClient;
     private PlaceAutocompleteAdapter mAdapter;
-    private AutoCompleteTextView mAutocompleteView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,9 +152,24 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.btnClearToolbar) {
-            if (mAutocompleteView != null)
-                mAutocompleteView.setText("");
+        if (id == R.id.btnCloseSearch) {
+            txtSearch.setVisibility(View.GONE);
+            btnCloseSearch.setVisible(false);
+            btnSearch.setVisible(true);
+            txtSearch.setText("");
+            //hide keyboard
+            InputMethodManager imm = (InputMethodManager) getBaseContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
+            return true;
+        }
+        else if (id == R.id.btnSearch) {
+            txtSearch.setVisibility(View.VISIBLE);
+            btnCloseSearch.setVisible(true);
+            btnSearch.setVisible(false);
+            txtSearch.requestFocus();
+            //force show keyboard
+            InputMethodManager inputMethodManager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            inputMethodManager.toggleSoftInputFromWindow(txtSearch.getWindowToken(), InputMethodManager.SHOW_FORCED, 0);
             return true;
         }
 
@@ -256,6 +274,13 @@ public class MainActivity extends AppCompatActivity
 
 
     }
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu)
+    {
+        btnSearch = menu.findItem(R.id.btnSearch);
+        btnCloseSearch = menu.findItem(R.id.btnCloseSearch);
+        return true;
+    }
 
     private void initializePermissions(){
         if (ContextCompat.checkSelfPermission(this,
@@ -313,11 +338,17 @@ public class MainActivity extends AppCompatActivity
                 imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_48dp);
             }
         });
+        slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
+        slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }
     private void initializeToolbar(){
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("");
+
+        txtSearch = (AutoCompleteTextView)
+                findViewById(R.id.txtSearch);
+        txtSearch.setOnItemClickListener(mAutocompleteClickListener);
     }
     private void initializeDrawerLayout(){
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
@@ -364,13 +395,9 @@ public class MainActivity extends AppCompatActivity
                     .addApi(Places.GEO_DATA_API)
                     .build();
 
-            mAutocompleteView = (AutoCompleteTextView)
-                    findViewById(R.id.autocomplete_places);
-            mAutocompleteView.setOnItemClickListener(mAutocompleteClickListener);
-
             mAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, latLngBounds,
                     null);
-            mAutocompleteView.setAdapter(mAdapter);
+            txtSearch.setAdapter(mAdapter);
 
             lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
             lblScrollView = (TextView) findViewById(R.id.lblScrollView);
@@ -528,10 +555,10 @@ public class MainActivity extends AppCompatActivity
             final com.google.android.gms.location.places.Place place = places.get(0);
 
             //remove the keyboard from the screen
-            mAutocompleteView.clearFocus();
+            txtSearch.clearFocus();
             //hide keyboard
             InputMethodManager imm = (InputMethodManager) getBaseContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(mAutocompleteView.getWindowToken(), 0);
+            imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
 
             // Format details of the place for display and show it in a TextView.
             lblPlaceTitle.setText("Name: "+ place.getName());
@@ -542,7 +569,7 @@ public class MainActivity extends AppCompatActivity
             lblScrollView.setText("ID: " + place.getId() + "\nAddress: " + place.getAddress() + "\nLat/Lang: " + place.getLatLng().toString() + "\nPhone: " + place.getPhoneNumber() + "\nWebsite: " + website);
 
             //anchor the panel
-            slidingPanelLayout.setAnchorPoint(0.7f);
+            //slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
             slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
 
             //move the map

@@ -5,8 +5,16 @@
 
     <item
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/btnClearToolbar"
+        android:id="@+id/btnCloseSearch"
+        android:visible="false"
         android:title="Clear"
         android:icon="@drawable/ic_clear_white_24dp"
-        app:showAsAction="always" />
+        app:showAsAction="always|collapseActionView" />
+
+    <item
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/btnSearch"
+        android:title="Search"
+        android:icon="@drawable/ic_search_white_24dp"
+        app:showAsAction="always|withText" />
 </menu>
