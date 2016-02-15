@@ -11,6 +11,8 @@ import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.ToneGenerator;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -57,8 +59,11 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements
+        NavigationView.OnNavigationItemSelectedListener,
+        OnMapReadyCallback,
+        GoogleApiClient.OnConnectionFailedListener,
+        android.location.LocationListener{
 
     private static final String[] INITIAL_PERMS={
         android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -106,6 +111,7 @@ public class MainActivity extends AppCompatActivity
 
         //Initialize activity related resources, the order here is important
         initializePermissions();
+        initializeLocation();
         initializeToolbar();
         initializeDrawerLayout();
         initializeSlidingPanel();
@@ -288,6 +294,28 @@ public class MainActivity extends AppCompatActivity
         btnCloseSearch = menu.findItem(R.id.btnCloseSearch);
         return true;
     }
+    @Override
+    public void onLocationChanged(Location location) {
+        // beep when location changed
+        final ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
+        tg.startTone(ToneGenerator.TONE_PROP_BEEP);
+        lastLocation = location;
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
 
     private void initializePermissions(){
         if (ContextCompat.checkSelfPermission(this,
@@ -305,6 +333,20 @@ public class MainActivity extends AppCompatActivity
             // result of the request.
         }
 
+    }
+    private void initializeLocation(){
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            String bestProvider = locationManager.getBestProvider(criteria, true);
+            Location location = locationManager.getLastKnownLocation(bestProvider);
+            if (location != null) {
+                onLocationChanged(location);
+            }
+            locationManager.requestLocationUpdates(bestProvider, 5, 5, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
+
+        }
     }
     private void initializeSlidingPanel(){
         imgToggleSlidingPanel = (ImageView) findViewById(R.id.imgToggleSlidingPanel);
@@ -393,7 +435,6 @@ public class MainActivity extends AppCompatActivity
 
     }
     private void initializePlacesApi(){
-        lastLocation = getMyLocation();
         if (lastLocation != null) {
             LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), DEFAULT_PLACE_DISTANCE);
 
@@ -447,7 +488,7 @@ public class MainActivity extends AppCompatActivity
                             CircleOptions distanceCircleOptions = new CircleOptions()
                                     .center(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
                                     .radius(i)
-                                    .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.black))
+                                    .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimaryDark))
                                     .fillColor(R.color.colorPrimaryDark);
                             distanceCircle = map.addCircle(distanceCircleOptions);
                         }
@@ -466,43 +507,19 @@ public class MainActivity extends AppCompatActivity
         return new LatLngBounds(southwest, northeast);
     }
     private void centerMapOnMyLocation(){
-        lastLocation = getMyLocation();
         if (lastLocation != null)
         {
             map.animateCamera(CameraUpdateFactory.newLatLngZoom(
                     new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))      // Sets the center of the map to location user
-                    .zoom(14)                   // Sets the zoom
-                    .bearing(0)                // Sets the orientation of the camera to north
-                    .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
+                .target(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))      // Sets the center of the map to location user
+                .zoom(14)                   // Sets the zoom
+                .bearing(0)                // Sets the orientation of the camera to north
+                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
             map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
-        }
-    }
-    private Location getMyLocation() {
-        // Get location from GPS if it's available
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            LocationManager lm = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            Location myLocation = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-            // Location wasn't found, check the next most accurate place for the current location
-            if (myLocation == null) {
-                Criteria criteria = new Criteria();
-                criteria.setAccuracy(Criteria.ACCURACY_COARSE);
-                // Finds a provider that matches the criteria
-                String provider = lm.getBestProvider(criteria, true);
-                // Use the provider to get the last known location
-                myLocation = lm.getLastKnownLocation(provider);
-            }
-
-            return myLocation;
-        }
-        else {
-            return null;
         }
     }
 
@@ -573,7 +590,11 @@ public class MainActivity extends AppCompatActivity
             String website = "";
             if (place.getWebsiteUri() != null)
                 website = place.getWebsiteUri().toString();
-            lblScrollView.setText("ID: " + place.getId() + "\nAddress: " + place.getAddress() + "\nLat/Lang: " + place.getLatLng().toString() + "\nPhone: " + place.getPhoneNumber() + "\nWebsite: " + website);
+            lblScrollView.setText("ID: " + place.getId() +
+                    "\nAddress: " + place.getAddress() +
+                    "\nLat/Lang: " + place.getLatLng().toString() +
+                    "\nPhone: " + place.getPhoneNumber() +
+                    "\nWebsite: " + website);
 
             //anchor the panel
             //slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
@@ -581,11 +602,11 @@ public class MainActivity extends AppCompatActivity
 
             //move the map
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                    .target(new LatLng(place.getLatLng().latitude, place.getLatLng().longitude))      // Sets the center of the map to location user
-                    .zoom(14)                   // Sets the zoom
-                    .bearing(0)                // Sets the orientation of the camera to north
-                    .tilt(40)                   // Sets the tilt of the camera to 30 degrees
-                    .build();                   // Creates a CameraPosition from the builder
+                .target(new LatLng(place.getLatLng().latitude, place.getLatLng().longitude))      // Sets the center of the map to location user
+                .zoom(14)                   // Sets the zoom
+                .bearing(0)                // Sets the orientation of the camera to north
+                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                .build();                   // Creates a CameraPosition from the builder
             map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
             //add a marker
