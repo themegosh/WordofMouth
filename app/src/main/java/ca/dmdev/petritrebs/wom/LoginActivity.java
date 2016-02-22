@@ -59,6 +59,8 @@ import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
+    protected WordOfMouth wom;
+
     private static CallbackManager callbackManager;
     private AccessTokenTracker accessTokenTracker;
     private Intent mainActivity;
@@ -74,6 +76,8 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(this.getApplicationContext()); //set up facebook SDK before setContentView!
         callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
+
+        wom = (WordOfMouth)getApplication();
 
         //try to get the old access token
         AccessToken accessToken = AccessToken.getCurrentAccessToken();

@@ -75,8 +75,10 @@ public class MainActivity extends AppCompatActivity implements
     private static final float PANEL_ANCHORED = 0.7f;
     private static final float PANEL_EXPANDED = 1.0f;
     private static final int DEFAULT_PLACE_DISTANCE = 1000;
-
     private static final String TAG = MainActivity.class.getName();
+
+    protected WordOfMouth wom;
+
     private SlidingUpPanelLayout slidingPanelLayout;
     private Toolbar toolbar;
     private FloatingActionButton fabAddLocation;
@@ -107,6 +109,7 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        wom = (WordOfMouth)getApplication();
         fragmentManager = getFragmentManager();
 
         //Initialize activity related resources, the order here is important
