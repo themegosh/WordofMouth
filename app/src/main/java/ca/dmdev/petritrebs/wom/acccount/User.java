@@ -21,7 +21,7 @@ public class User {
     private String lastName;
     private String email;
     private String gender;
-    private URL picUrl;
+    private String picUrl;
 
     public static void initInstance(){
         if (instance == null){
@@ -39,14 +39,6 @@ public class User {
         lastName = "";
         email = "";
         gender = "";
-    }
-
-    private User(String id, String firstName, String lastName, String email, String gender){
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.email = email;
-        this.gender = gender;
     }
 
     public String getId() {
@@ -69,7 +61,7 @@ public class User {
         return lastName;
     }
 
-    public URL getPicUrl() {
+    public String getPicUrl() {
         return picUrl;
     }
 
@@ -78,7 +70,7 @@ public class User {
             id = user.getString("id");
 
             try {
-                picUrl = new URL("https://graph.facebook.com/" + id + "/picture?width=200&height=150");
+                picUrl = new URL("https://graph.facebook.com/" + id + "/picture?width=150&height=150").toString();
             } catch (MalformedURLException e) {
                 Log.d(TAG, e.getMessage());
                 e.printStackTrace();

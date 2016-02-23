@@ -2,6 +2,7 @@ package ca.dmdev.petritrebs.wom;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInstaller;
@@ -86,10 +87,6 @@ public class LoginActivity extends AppCompatActivity {
         if (accessToken != null){
             //update current data with the data on the server
             updateFacebookData(accessToken);
-
-            //open the new activity, passing the user's data
-            mainActivity = new Intent(this, MainActivity.class);
-            startActivityForResult(mainActivity, REQUEST_LOGOUT);
         }
 
         //if we get this far, it means the user has either logged out or is new
@@ -117,8 +114,6 @@ public class LoginActivity extends AppCompatActivity {
                 } else { //we have a token
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
                     updateFacebookData(currentAccessToken);//we need to do this threaded
-                    mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting main activity
-                    startActivityForResult(mainActivity, REQUEST_LOGOUT); //start it
                 }
             }
         };
@@ -206,6 +201,14 @@ public class LoginActivity extends AppCompatActivity {
     //update facebook data
     private void updateFacebookData(final AccessToken accessToken){
 
+        final ProgressDialog dialog = new ProgressDialog(this); // this = YourActivity
+        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        dialog.setMessage("Loading. Please wait...");
+        dialog.setIndeterminate(true);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setCancelable(false);
+        dialog.show();
+
         //set up graph request for user info
         GraphRequest userInfo = GraphRequest.newMeRequest(
             accessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
@@ -245,9 +248,13 @@ public class LoginActivity extends AppCompatActivity {
                                             Log.e(TAG, e.getMessage());
                                         }*/
 
-
                                         new UpdateExternalDb().execute(facebookUser, facebookFriends);
                                         User.getInstance().setUserFromJSON(facebookUser);
+
+
+                                        mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting main activity
+                                        startActivityForResult(mainActivity, REQUEST_LOGOUT); //start it
+                                        dialog.cancel();
                                     }
                                 }
                             }
