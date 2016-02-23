@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.media.AudioManager;
 import android.media.ToneGenerator;
@@ -124,7 +125,38 @@ public class MainActivity extends AppCompatActivity implements
         initializePlacesApi();
         initializeDistanceSlider();
     }
+    @Override
+    protected void onPause() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(this);
+        }
+        super.onPause();
+    }
+    @Override
+    public void onStop(){
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(this);
+        }
+        super.onStop();
+    }
+    @Override
+    protected void onResume() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+            Criteria criteria = new Criteria();
+            String bestProvider = locationManager.getBestProvider(criteria, true);
+            Location location = locationManager.getLastKnownLocation(bestProvider);
+            if (location != null) {
+                onLocationChanged(location);
+            }
+            locationManager.requestLocationUpdates(bestProvider, 2000, 0, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
 
+        }
+        super.onResume();
+    }
     @Override
     public void onBackPressed() {
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
@@ -291,8 +323,7 @@ public class MainActivity extends AppCompatActivity implements
 
     }
     @Override
-    public boolean onPrepareOptionsMenu(Menu menu)
-    {
+    public boolean onPrepareOptionsMenu(Menu menu) {
         btnSearch = menu.findItem(R.id.btnSearch);
         btnCloseSearch = menu.findItem(R.id.btnCloseSearch);
         return true;
@@ -304,17 +335,14 @@ public class MainActivity extends AppCompatActivity implements
         tg.startTone(ToneGenerator.TONE_PROP_BEEP);
         lastLocation = location;
     }
-
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
 
     }
-
     @Override
     public void onProviderEnabled(String provider) {
 
     }
-
     @Override
     public void onProviderDisabled(String provider) {
 
@@ -429,6 +457,8 @@ public class MainActivity extends AppCompatActivity implements
     private void initializeNavPanel(){
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+
     }
     private void initializeMap() {
 
