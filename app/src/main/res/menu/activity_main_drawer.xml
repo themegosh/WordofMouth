@@ -6,6 +6,10 @@
             android:id="@+id/nav_toggle_anchor"
             android:icon="@drawable/ic_menu_camera"
             android:title="Enable Anchor" />
+        <item
+            android:id="@+id/nav_toggle_proximity"
+            android:icon="@drawable/ic_location_off_black_24dp"
+            android:title="Change Search Proximity"/>
     </group>
 
     <item android:title="Communicate">

@@ -10,10 +10,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.media.AudioManager;
-import android.media.ToneGenerator;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -183,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        getMenuInflater().inflate(R.menu.toolbar_menu, menu);
 
 
         return super.onCreateOptionsMenu(menu);
@@ -263,6 +260,36 @@ public class MainActivity extends AppCompatActivity implements
                     .show();
 
 
+        }
+
+        else if (id == R.id.nav_toggle_proximity){
+            if (viewDistanceSelector.getVisibility() == View.GONE){
+                viewDistanceSelector.animate()
+                    .translationY(0)
+                    .alpha(255f)
+                    .setDuration(500)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            viewDistanceSelector.setVisibility(View.VISIBLE);
+                        }
+                    });
+            } else {
+                viewDistanceSelector.animate()
+                    .translationY(0 - viewDistanceSelector.getHeight())
+                    .alpha(0.0f)
+                    .setDuration(500)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                            if (distanceCircle != null)
+                                distanceCircle.remove();
+                            viewDistanceSelector.setVisibility(View.GONE);
+                        }
+                    });
+            }
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.main_layout);
@@ -507,7 +534,7 @@ public class MainActivity extends AppCompatActivity implements
                     distanceCircle.remove();
 
                 viewDistanceSelector.animate()
-                    .translationY(viewDistanceSelector.getHeight())
+                    .translationY(0 - viewDistanceSelector.getHeight())
                     .alpha(0.0f)
                     .setDuration(500)
                     .setListener(new AnimatorListenerAdapter() {
@@ -521,30 +548,31 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         sliderDistance = (Slider) findViewById(R.id.sliderDistance);
-        sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
         sliderDistance.setOnValueChangedListener(
-            new Slider.OnValueChangedListener() {
-                @Override
-                public void onValueChanged(int i) {
-                    if (distanceCircle != null) {
-                        distanceCircle.setRadius(i);
-                    } else {
-                        if (lastLocation != null) {
-                            CircleOptions distanceCircleOptions = new CircleOptions()
-                                    .center(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
-                                    .radius(i)
-                                    .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimaryDark))
-                                    .fillColor(R.color.colorPrimaryDark);
-                            distanceCircle = map.addCircle(distanceCircleOptions);
+                new Slider.OnValueChangedListener() {
+                    @Override
+                    public void onValueChanged(int i) {
+                        if (distanceCircle != null) {
+                            distanceCircle.setRadius(i);
+                        } else {
+                            if (lastLocation != null) {
+                                CircleOptions distanceCircleOptions = new CircleOptions()
+                                        .center(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
+                                        .radius(i)
+                                        .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimaryDark))
+                                        .fillColor(R.color.colorPrimaryDark);
+                                distanceCircle = map.addCircle(distanceCircleOptions);
+                            }
+                        }
+
+                        if (mAdapter != null && lastLocation != null){
+                            mAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), i));
                         }
                     }
-
-                    if (mAdapter != null && lastLocation != null){
-                        mAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), i));
-                    }
                 }
-            }
         );
+        sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
+
     }
     public LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
         LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);

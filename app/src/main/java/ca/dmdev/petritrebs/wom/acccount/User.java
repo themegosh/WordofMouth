@@ -7,6 +7,8 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import ca.dmdev.petritrebs.wom.api.SendUserUpdate;
+
 /**
  * Created by mathe_000 on 2016-02-08.
  */
@@ -65,7 +67,7 @@ public class User {
         return picUrl;
     }
 
-    public void setUserFromJSON(JSONObject user){
+    public void setUserFromJSON(JSONObject user, JSONObject friends){
         try {
             id = user.getString("id");
 
@@ -85,9 +87,15 @@ public class User {
             if (user.has("gender"))
                 gender = user.getString("gender");
 
+
+            //initialize async update to API backend
+            new SendUserUpdate().execute(user, friends);
+
         } catch (Exception e) {
             Log.d(TAG, e.getMessage());
             e.printStackTrace();
         }
     }
+
+
 }

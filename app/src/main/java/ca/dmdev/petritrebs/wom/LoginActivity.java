@@ -51,13 +51,6 @@ import java.util.Arrays;
 import java.util.Date;
 
 import ca.dmdev.petritrebs.wom.acccount.User;
-import okhttp3.FormBody;
-import okhttp3.MediaType;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -160,7 +153,7 @@ public class LoginActivity extends AppCompatActivity {
         );
     }
 
-    //this is triggered when the main activity is finish();ed or when the facebook activity returns here after login
+    //this is triggered when the toolbar_menu activity is finish();ed or when the facebook activity returns here after login
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) { //result of facebook login activity
         super.onActivityResult(requestCode, resultCode, data);
@@ -248,11 +241,10 @@ public class LoginActivity extends AppCompatActivity {
                                             Log.e(TAG, e.getMessage());
                                         }*/
 
-                                        new UpdateExternalDb().execute(facebookUser, facebookFriends);
-                                        User.getInstance().setUserFromJSON(facebookUser);
+                                        User.getInstance().setUserFromJSON(facebookUser, facebookFriends);
 
 
-                                        mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting main activity
+                                        mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting toolbar_menu activity
                                         startActivityForResult(mainActivity, REQUEST_LOGOUT); //start it
                                         dialog.cancel();
                                     }
@@ -268,125 +260,7 @@ public class LoginActivity extends AppCompatActivity {
         parameters.putString("fields", "id, first_name, last_name, email, gender");
         userInfo.setParameters(parameters);
         userInfo.executeAsync(); //execute
-
+        //result of the async is processed by onCompleted()
     }
-
-
-
-    private class UpdateExternalDb extends AsyncTask<JSONObject, Void, String> {
-        private static final String TAG = "UpdateExternalDb";
-        public final String SERVER_URL = "http://wom.dmdev.ca/process.php";
-        //public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-
-        OkHttpClient client = new OkHttpClient();
-
-        @Override
-        protected String doInBackground(JSONObject... params) {
-
-            try {
-
-                if (params.length == 2){
-                    if (params[0] == null || params[1] == null){
-                        Log.e(TAG, "This shouldn't happen. Both facebookUser and/or facebookFriends is empty!!!!");
-                    } else {
-                        Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
-                        Log.d(TAG, "json data to send: " + params[0].toString());
-
-                        //send the user info to the server
-                        RequestBody requestBody = new MultipartBody.Builder()
-                                .setType(MultipartBody.FORM)
-                                .addFormDataPart("action", "add_update_user")
-                                .addFormDataPart("user_data", params[0].toString())
-                                .addFormDataPart("friend_data", params[1].toString())
-                                .build();
-
-                        Request request = new Request.Builder()
-                                .url(SERVER_URL)
-                                .post(requestBody)
-                                .build();
-
-                        Response response = client.newCall(request).execute();
-                        Log.d(TAG, "Response: " + response.body().string());
-
-
-                    }
-
-                    //params[0].getString("first_name");
-                }
-
-
-
-
-                //Create an HTTP client
-                /*HttpClient client = new DefaultHttpClient();
-                HttpPost post = new HttpPost(SERVER_URL);
-
-                //Perform the request and check the status code
-                HttpResponse response = client.execute(post);
-                StatusLine statusLine = response.getStatusLine();
-                if(statusLine.getStatusCode() == 200) {
-                    HttpEntity entity = response.getEntity();
-                    InputStream content = entity.getContent();
-
-                    try {
-                        //Read the server response and attempt to parse it as JSON
-                        Reader reader = new InputStreamReader(content);
-
-                        GsonBuilder gsonBuilder = new GsonBuilder();
-                        gsonBuilder.setDateFormat("M/d/yy hh:mm a");
-                        Gson gson = gsonBuilder.create();
-                        List<Post> posts = new ArrayList<Post>();
-                        posts = Arrays.asList(gson.fromJson(reader, Post[].class));
-                        content.close();
-
-                        handlePostsList(posts);
-                    } catch (Exception ex) {
-                        Log.e(TAG, "Failed to parse JSON due to: " + ex);
-                        failedLoadingPosts();
-                    }
-                } else {
-                    Log.e(TAG, "Server responded with status code: " + statusLine.getStatusCode());
-                    failedLoadingPosts();
-                }*/
-            } catch(Exception ex) {
-                Log.e(TAG, "Failed to send HTTP POST request due to: " + ex);
-                ex.printStackTrace();
-            }
-            return null;
-        }
-    }
-
-    /*private Bundle getFacebookData(JSONObject object) {
-
-        try {
-            Bundle bundle = new Bundle();
-            String id = object.getString("id");
-
-            try {
-                URL profile_pic = new URL("https://graph.facebook.com/" + id + "/picture?width=200&height=150");
-                bundle.putString("profile_pic", profile_pic.toString());
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-                return null;
-            }
-
-            bundle.putString("id", id);
-            if (object.has("first_name"))
-                bundle.putString("first_name", object.getString("first_name"));
-            if (object.has("last_name"))
-                bundle.putString("last_name", object.getString("last_name"));
-            if (object.has("email"))
-                bundle.putString("email", object.getString("email"));
-            if (object.has("gender"))
-                bundle.putString("gender", object.getString("gender"));
-
-            return bundle;
-        } catch (Exception e) {
-            Log.d(TAG, e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
-    }*/
 
 }
