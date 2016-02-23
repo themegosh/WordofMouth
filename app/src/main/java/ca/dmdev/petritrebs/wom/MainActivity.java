@@ -515,7 +515,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
                 viewDistanceSelector.setVisibility(View.GONE);
-                
+
             }
         });
 
@@ -527,6 +527,16 @@ public class MainActivity extends AppCompatActivity implements
                         if (distanceCircle != null) {
                             distanceCircle.setRadius(i);
                         } else {
+                            if (lastLocation == null) {
+                                if (ContextCompat.checkSelfPermission(getBaseContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
+                                        == PackageManager.PERMISSION_GRANTED) {
+                                    locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+                                    Criteria criteria = new Criteria();
+                                    String bestProvider = locationManager.getBestProvider(criteria, true);
+                                    lastLocation = locationManager.getLastKnownLocation(bestProvider);
+                                }
+                            }
+
                             if (lastLocation != null) {
                                 CircleOptions distanceCircleOptions = new CircleOptions()
                                         .center(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
