@@ -264,31 +264,11 @@ public class MainActivity extends AppCompatActivity implements
 
         else if (id == R.id.nav_toggle_proximity){
             if (viewDistanceSelector.getVisibility() == View.GONE){
-                viewDistanceSelector.animate()
-                    .translationY(0)
-                    .alpha(255f)
-                    .setDuration(500)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            viewDistanceSelector.setVisibility(View.VISIBLE);
-                        }
-                    });
+                viewDistanceSelector.setVisibility(View.VISIBLE);
             } else {
-                viewDistanceSelector.animate()
-                    .translationY(0 - viewDistanceSelector.getHeight())
-                    .alpha(0.0f)
-                    .setDuration(500)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            if (distanceCircle != null)
-                                distanceCircle.remove();
-                            viewDistanceSelector.setVisibility(View.GONE);
-                        }
-                    });
+                viewDistanceSelector.setVisibility(View.GONE);
+                if (distanceCircle != null)
+                    distanceCircle.remove();
             }
         }
 
@@ -533,17 +513,9 @@ public class MainActivity extends AppCompatActivity implements
                 if (distanceCircle != null)
                     distanceCircle.remove();
 
-                viewDistanceSelector.animate()
-                    .translationY(0 - viewDistanceSelector.getHeight())
-                    .alpha(0.0f)
-                    .setDuration(500)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-                            viewDistanceSelector.setVisibility(View.GONE);
-                        }
-                    });
+
+                viewDistanceSelector.setVisibility(View.GONE);
+                
             }
         });
 
