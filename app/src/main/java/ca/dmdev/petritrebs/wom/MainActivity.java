@@ -59,6 +59,9 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.maps.android.SphericalUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
+import com.squareup.picasso.Picasso;
+
+import ca.dmdev.petritrebs.wom.acccount.User;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -330,9 +333,6 @@ public class MainActivity extends AppCompatActivity implements
     }
     @Override
     public void onLocationChanged(Location location) {
-        // beep when location changed
-        final ToneGenerator tg = new ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100);
-        tg.startTone(ToneGenerator.TONE_PROP_BEEP);
         lastLocation = location;
     }
     @Override
@@ -458,7 +458,19 @@ public class MainActivity extends AppCompatActivity implements
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        View navHeaderView = navigationView.getHeaderView(0); //navigationView.inflateHeaderView(R.layout.nav_header_main);
 
+        ImageView profilePic = (ImageView) navHeaderView.findViewById(R.id.imageView);
+        TextView profileName = (TextView) navHeaderView.findViewById(R.id.profileName);
+
+
+        profileName.setText(User.getInstance().getFirstName() + " " + User.getInstance().getLastName());
+        //profileName.setText("Firstname Lastname");
+        Picasso.with(getApplicationContext()).load(User.getInstance().getPicUrl()).into(profilePic);
+
+        Log.d(TAG, "picUrl: " + User.getInstance().getPicUrl());
+
+        Log.d(TAG, "initializeNavPanel() User(): " + User.getInstance().getFirstName() + " " + User.getInstance().getLastName());
     }
     private void initializeMap() {
 
