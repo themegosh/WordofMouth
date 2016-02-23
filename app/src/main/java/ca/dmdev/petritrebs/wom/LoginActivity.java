@@ -49,6 +49,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Date;
 
+import ca.dmdev.petritrebs.wom.acccount.User;
 import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -116,14 +117,14 @@ public class LoginActivity extends AppCompatActivity {
                 } else { //we have a token
                     Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
                     updateFacebookData(currentAccessToken);//we need to do this threaded
-                    mainActivity = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivityForResult(mainActivity, REQUEST_LOGOUT);
+                    mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting main activity
+                    startActivityForResult(mainActivity, REQUEST_LOGOUT); //start it
                 }
             }
         };
 
         //do we even need this?
-        ProfileTracker profileTracker = new ProfileTracker() {
+        /*ProfileTracker profileTracker = new ProfileTracker() {
             @Override
             protected void onCurrentProfileChanged(
                     Profile oldProfile,
@@ -135,7 +136,7 @@ public class LoginActivity extends AppCompatActivity {
                     Log.d(TAG, "onCurrentProfileChanged" + currentProfile.toString());
                 }
             }
-        };
+        };*/
 
 
         //this is what handles the callback for the facebook login activity
@@ -246,6 +247,7 @@ public class LoginActivity extends AppCompatActivity {
 
 
                                         new UpdateExternalDb().execute(facebookUser, facebookFriends);
+                                        User.getInstance().setUserFromJSON(facebookUser);
                                     }
                                 }
                             }
@@ -260,8 +262,6 @@ public class LoginActivity extends AppCompatActivity {
         userInfo.setParameters(parameters);
         userInfo.executeAsync(); //execute
 
-
-
     }
 
 
@@ -269,7 +269,7 @@ public class LoginActivity extends AppCompatActivity {
     private class UpdateExternalDb extends AsyncTask<JSONObject, Void, String> {
         private static final String TAG = "UpdateExternalDb";
         public final String SERVER_URL = "http://wom.dmdev.ca/process.php";
-        public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+        //public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
         OkHttpClient client = new OkHttpClient();
 
@@ -344,25 +344,12 @@ public class LoginActivity extends AppCompatActivity {
             } catch(Exception ex) {
                 Log.e(TAG, "Failed to send HTTP POST request due to: " + ex);
                 ex.printStackTrace();
-                //failedLoadingPosts();
             }
             return null;
         }
     }
 
-    public void reRollShowPopup(View v){
-        Dialog myDialog = new Dialog(v.getContext(), R.style.LoadingDialog);
-        myDialog.setContentView(R.layout.dialog_logging_in);
-
-        //TextView txtRollTotal = (TextView) myDialog.findViewById(R.id.txtRollTotal);
-        //TextView txtSequenceData = (TextView) myDialog.findViewById(R.id.txtSequenceData);
-
-        //txtRollTotal.setText(String.valueOf(lastTotal));
-        //txtSequenceData.setText(sequenceData);
-        myDialog.show();
-    }
-
-    private Bundle getFacebookData(JSONObject object) {
+    /*private Bundle getFacebookData(JSONObject object) {
 
         try {
             Bundle bundle = new Bundle();
@@ -389,9 +376,10 @@ public class LoginActivity extends AppCompatActivity {
 
             return bundle;
         } catch (Exception e) {
-            Log.d(TAG, e.getStackTrace().toString());
+            Log.d(TAG, e.getMessage());
+            e.printStackTrace();
             return null;
         }
-    }
+    }*/
 
 }

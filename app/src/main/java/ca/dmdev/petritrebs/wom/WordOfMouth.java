@@ -3,6 +3,8 @@ package ca.dmdev.petritrebs.wom;
 import android.app.Application;
 import android.content.res.Configuration;
 
+import ca.dmdev.petritrebs.wom.acccount.User;
+
 /**
  * Created by Doug on 2016-02-22.
  */
@@ -20,6 +22,8 @@ public class WordOfMouth extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+
+        User.initInstance();
     }
 
     @Override
