@@ -82,14 +82,12 @@ public class LoginActivity extends AppCompatActivity {
             updateFacebookData(accessToken);
         }
 
-        //if we get this far, it means the user has either logged out or is new
-
         Button btnLogin = (Button) findViewById(R.id.btnLogin);
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            // Set permissions and try to login
-            LoginManager.getInstance().logInWithReadPermissions((Activity) v.getContext(), Arrays.asList("email", "public_profile", "user_friends"));
+                // Set permissions and try to login
+                LoginManager.getInstance().logInWithReadPermissions((Activity) v.getContext(), Arrays.asList("email", "public_profile", "user_friends"));
             }
         });
 
@@ -102,10 +100,7 @@ public class LoginActivity extends AppCompatActivity {
 
                 // Set the access token using
                 // currentAccessToken when it's loaded or set.
-                if (currentAccessToken == null) {
-                    Log.d(TAG, "onCurrentAccessTokenChanged: currentAccessToken == null");
-                } else { //we have a token
-                    Log.d(TAG, "onCurrentAccessTokenChanged: " + currentAccessToken.getToken());
+                if (currentAccessToken != null) {
                     updateFacebookData(currentAccessToken);//we need to do this threaded
                 }
             }
@@ -175,16 +170,13 @@ public class LoginActivity extends AppCompatActivity {
                 startActivityForResult(mainActivity, REQUEST_LOGOUT);
             }
         }
-
     }
-
 
     @Override
     public void onDestroy() {
         super.onDestroy();
         accessTokenTracker.stopTracking();
     }
-
 
     @Override
     protected void onStop(){
@@ -211,9 +203,6 @@ public class LoginActivity extends AppCompatActivity {
                         // handle error
                         Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
                     } else {
-                        Log.d(TAG, "onCompleted Success");
-                        Log.d(TAG, "Response: " + response.toString());
-                        Log.d(TAG, "json: " + json.toString());
                         facebookUser = json;
 
                         //request friends data
@@ -228,21 +217,10 @@ public class LoginActivity extends AppCompatActivity {
                                         // handle error
                                         Log.e(TAG, "onCompleted ERROR" + response.getError().toString());
                                     } else {
-                                        Log.d(TAG, "=================FRIENDS=====================");
                                         facebookFriends = response.getJSONObject();
-                                        Log.d(TAG, facebookFriends.toString());
 
-                                        //this code will need to go elsewhere
-                                        /*try {
-                                            Log.d(TAG, response.getJSONObject().getJSONArray("data").toString());
-                                        }
-                                        catch (Exception e)
-                                        {
-                                            Log.e(TAG, e.getMessage());
-                                        }*/
-
+                                        //initialize the user
                                         User.getInstance().setUserFromJSON(facebookUser, facebookFriends);
-
 
                                         mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting toolbar_menu activity
                                         startActivityForResult(mainActivity, REQUEST_LOGOUT); //start it
@@ -260,7 +238,7 @@ public class LoginActivity extends AppCompatActivity {
         parameters.putString("fields", "id, first_name, last_name, email, gender");
         userInfo.setParameters(parameters);
         userInfo.executeAsync(); //execute
-        //result of the async is processed by onCompleted()
+        //result of the async is processed by onCompleted() above
     }
 
 }
