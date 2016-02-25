@@ -8,4 +8,11 @@
     <dimen name="fab_margin">16dp</dimen>
     <dimen name="dialog_title">30sp</dimen>
     <dimen name="dialog_margin">20dp</dimen>
+    <dimen name="toolbar_height">56.0dip</dimen>
+    <dimen name="nested_padding">16.0dip</dimen>
+    <dimen name="outer_padding">12.0dip</dimen>
+    <dimen name="large_text">24.0sp</dimen>
+    <dimen name="medium_text">16.0sp</dimen>
+    <dimen name="normal_text">14.0sp</dimen>
+    <dimen name="small_text">12.0sp</dimen>
 </resources>

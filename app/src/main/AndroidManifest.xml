@@ -13,12 +13,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
+        android:name=".WordOfMouth"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme"
-        android:name="WordOfMouth">
+        android:theme="@style/AppTheme">
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
@@ -39,7 +39,8 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme">
-            <!--android:theme="@style/AppTheme.NoActionBar"-->
+
+            <!-- android:theme="@style/AppTheme.NoActionBar" -->
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -50,6 +51,11 @@
             <meta-data
                 android:name="android.app.searchable"
                 android:resource="@xml/searchable" />
+        </activity>
+        <activity
+            android:name=".AddReviewActivity"
+            android:label="@string/title_activity_add_review"
+            android:theme="@style/Theme.AppCompat.Transparent" >
         </activity>
 
         <meta-data
@@ -63,7 +69,7 @@
             android:name=".AddLocation"
             android:label="@string/title_activity_add_location"
             android:theme="@style/AppTheme.NoActionBar" />
-        <activity android:name=".MyFriends"></activity>
+        <activity android:name=".MyFriends" />
     </application>
 
 </manifest>

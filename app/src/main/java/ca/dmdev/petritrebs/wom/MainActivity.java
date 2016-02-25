@@ -12,6 +12,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -450,10 +451,10 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View v) {
                 try {
-                    Intent myIntentA1A2 = new Intent(MainActivity.this,
-                            AddLocation.class);
+                    Intent reviewActivityIntent = new Intent(MainActivity.this,
+                            AddReviewActivity.class);
 
-                    startActivityForResult(myIntentA1A2, 1);
+                    startActivityForResult(reviewActivityIntent, 1);
                 } catch (Exception e) {
                     Toast.makeText(getBaseContext(), e.getMessage(),
                             Toast.LENGTH_LONG).show();
@@ -641,7 +642,7 @@ public class MainActivity extends AppCompatActivity implements
 
             // Format details of the place for display and show it in a TextView.
             lblPlaceTitle.setText("Name: "+ place.getName());
-            //formatPlaceDetails(getResources(), place.getName(), place.getId(), place.getAddress(), place.getPhoneNumber(),                    place.getWebsiteUri()));
+            //formatPlaceDetails(getResources(), place.getName(), place.getId(), place.getAddress(), place.getPhoneNumber(),place.getWebsiteUri()));
             String website = "";
             if (place.getWebsiteUri() != null)
                 website = place.getWebsiteUri().toString();
@@ -692,7 +693,7 @@ public class MainActivity extends AppCompatActivity implements
      * @param connectionResult can be inspected to determine the cause of the failure
      */
     @Override
-    public void onConnectionFailed( ConnectionResult connectionResult) {
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
         Log.e(TAG, "onConnectionFailed: ConnectionResult.getErrorCode() = "
                 + connectionResult.getErrorCode());
