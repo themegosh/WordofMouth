@@ -556,7 +556,7 @@ public class MainActivity extends AppCompatActivity implements
         sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
 
     }
-    public LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
+    private LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
         LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
         LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
         return new LatLngBounds(southwest, northeast);
