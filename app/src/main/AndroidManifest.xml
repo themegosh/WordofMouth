@@ -55,7 +55,7 @@
         <activity
             android:name=".AddReviewActivity"
             android:label="@string/title_activity_add_review"
-            android:theme="@style/Theme.AppCompat.Transparent" >
+            android:theme="@style/AppTheme" >
         </activity>
 
         <meta-data

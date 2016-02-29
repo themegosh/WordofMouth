@@ -11,26 +11,21 @@
     android:padding="0.0dip"
     android:clickable="true"
     android:animateLayoutChanges="true"
-    android:background="@color/dialogTransparency"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     tools:context="ca.dmdev.petritrebs.wom.AddReviewActivity">
     <ScrollView android:id="@+id/add_review_scrollView"
         android:layout_width="fill_parent"
-        android:layout_height="fill_parent">
+        android:layout_height="fill_parent"
+        android:layout_below="@+id/add_review_toolbar_layout">
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Testing..."/>
             <LinearLayout
                 android:orientation="vertical"
                 android:id="@+id/add_review_title_select"
                 android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="1.0dip">
+                android:layout_height="wrap_content">
                 <android.support.design.widget.TextInputLayout
                     android:id="@+id/add_review_title_wrapper"
                     android:layout_width="fill_parent"
@@ -40,74 +35,97 @@
                     android:layout_marginRight="@dimen/nested_padding"
                     app:errorEnabled="true"
                     app:counterEnabled="true"
-                    app:counterMaxLength="300"
+                    app:counterMaxLength="75"
                     app:counterTextAppearance="@style/TextAppearance.AppTheme.Counter">
                     <EditText
                         android:textSize="@dimen/large_text"
                         android:textColor="?android:textColorPrimary"
-                        android:id="@+id/add_review_title_title"
+                        android:id="@+id/add_review_title_hint"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="7dp"
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:hint="@string/add_review_title"
                         android:inputType="textAutoCorrect|textCapSentences" />
                 </android.support.design.widget.TextInputLayout>
+                <android.support.design.widget.TextInputLayout
+                    android:id="@+id/add_review_desc_wrapper"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="@dimen/nested_padding"
+                    android:layout_marginRight="@dimen/nested_padding"
+                    app:errorEnabled="true"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="600"
+                    app:counterTextAppearance="@style/TextAppearance.AppTheme.Counter">
+                    <EditText
+                        android:textSize="@dimen/normal_text"
+                        android:textColor="?android:textColorPrimary"
+                        android:layout_marginTop="0dp"
+                        android:layout_marginBottom="0dp"
+                        android:paddingTop="5dp"
+                        android:paddingBottom="7dp"
+                        android:id="@+id/Description"
+                        android:maxLines="3"
+                        android:lines="3"
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/add_review_description_hint"
+                        android:inputType="textMultiLine|textAutoCorrect|textCapSentences" />
+                </android.support.design.widget.TextInputLayout>
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="@dimen/nested_padding"
-                    android:layout_marginTop="@dimen/nested_padding"
                     android:layout_marginRight="@dimen/nested_padding">
                     <com.like.LikeButton
                         app:icon_type="heart"
-                        app:icon_size="25dp"
+                        app:icon_size="24dp"
                         android:id="@id/add_review_like"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
-                        android:layout_alignParentTop="true"
                         android:gravity="center_vertical"
                         android:layout_toRightOf="@id/add_review_like"
-                        android:text="@string/add_review_would_you_recommend"
+                        android:text="@string/add_review_like_msg"
+                        android:layout_alignParentTop="true"
                         android:layout_alignParentBottom="true"
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
-                <android.support.design.widget.TextInputLayout
-                    android:id="@+id/add_review_desc_wrapper"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="@dimen/nested_padding"
-                    android:layout_marginTop="@dimen/nested_padding"
-                    android:layout_marginRight="@dimen/nested_padding"
-                    app:errorEnabled="true"
-                    app:counterEnabled="true"
-                    app:counterMaxLength="300"
-                    app:counterTextAppearance="@style/TextAppearance.AppTheme.Counter">
-                    <EditText
-                        android:textSize="@dimen/normal_text"
-                        android:textColor="?android:textColorPrimary"
-                        android:id="@+id/Description"
-                        android:layout_width="fill_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="Title Hint..."
-                        android:inputType="textAutoCorrect|textCapSentences" />
-                </android.support.design.widget.TextInputLayout>
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
-    <android.support.v7.widget.Toolbar
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/add_review_toolbar_layout"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/toolbar_height">
-        <ImageView
-            android:layout_gravity="end|center|top"
-            android:id="@+id/submission_send_icon"
-            android:visibility="invisible"
-            android:layout_width="24.0dip"
-            android:layout_height="24.0dip"
-            android:layout_marginLeft="12.0dip"
-            android:layout_marginRight="12.0dip"
-            android:src="@drawable/ic_send_white_24dp"
-            android:contentDescription="Send" />
-    </android.support.v7.widget.Toolbar>
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:animateLayoutChanges="true">
+            <android.support.v7.widget.Toolbar
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="?attr/colorPrimary"
+                android:layout_gravity="end"
+                app:popupTheme="@style/AppTheme.PopupOverlay"
+                android:id="@+id/add_review_toolbar">
+                <ImageView
+                    android:layout_gravity="end|center|top"
+                    android:id="@+id/submission_send_icon"
+                    android:visibility="visible"
+                    android:layout_width="24.0dip"
+                    android:layout_height="24.0dip"
+                    android:layout_marginLeft="12.0dip"
+                    android:layout_marginRight="12.0dip"
+                    android:src="@drawable/ic_send_white_24dp"
+                    android:contentDescription="Send" />
+            </android.support.v7.widget.Toolbar>
+        </RelativeLayout>
+    </android.support.design.widget.AppBarLayout>
 </RelativeLayout>
