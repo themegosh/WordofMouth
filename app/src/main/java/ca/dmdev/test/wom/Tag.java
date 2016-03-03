@@ -1,4 +1,4 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.test.wom;
 
 /**
  * Created by mathe_000 on 2016-02-05.

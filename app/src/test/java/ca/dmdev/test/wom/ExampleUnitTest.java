@@ -1,4 +1,4 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.test.wom;
 
 import org.junit.Test;
 

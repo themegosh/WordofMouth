@@ -1,4 +1,4 @@
-package ca.dmdev.petritrebs.wom.acccount;
+package ca.dmdev.test.wom.acccount;
 
 import android.util.Log;
 
@@ -7,7 +7,7 @@ import org.json.JSONObject;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import ca.dmdev.petritrebs.wom.api.SendUserUpdate;
+import ca.dmdev.test.wom.api.SendUserUpdate;
 
 /**
  * Created by mathe_000 on 2016-02-08.

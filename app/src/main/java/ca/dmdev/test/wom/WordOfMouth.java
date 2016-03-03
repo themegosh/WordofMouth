@@ -1,9 +1,9 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.test.wom;
 
 import android.app.Application;
 import android.content.res.Configuration;
 
-import ca.dmdev.petritrebs.wom.acccount.User;
+import ca.dmdev.test.wom.acccount.User;
 
 /**
  * Created by Doug on 2016-02-22.

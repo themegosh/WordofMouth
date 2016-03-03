@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/login_view"
-    tools:context="ca.dmdev.petritrebs.wom.LoginActivity">
+    tools:context="ca.dmdev.test.wom.LoginActivity">
 
     <Button
         android:layout_width="fill_parent"

@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="ca.dmdev.petritrebs.wom.AddLocation"
+    tools:context="ca.dmdev.test.wom.AddLocation"
     tools:showIn="@layout/activity_add_location">
 
 </RelativeLayout>

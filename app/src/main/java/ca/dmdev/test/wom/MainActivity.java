@@ -1,7 +1,5 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.test.wom;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.content.Context;
@@ -59,7 +57,7 @@ import com.google.maps.android.SphericalUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.picasso.Picasso;
 
-import ca.dmdev.petritrebs.wom.acccount.User;
+import ca.dmdev.test.wom.acccount.User;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,

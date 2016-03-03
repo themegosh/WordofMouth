@@ -1,4 +1,4 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.test.wom;
 
 /**
  * Created by Doug on 2016-02-12.
@@ -29,7 +29,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 /**

@@ -1,4 +1,4 @@
-package ca.dmdev.petritrebs.wom;
+package ca.dmdev.test.wom;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
