@@ -35,8 +35,7 @@ public class WordOfMouth extends Application implements
     private LocationManager locationManager;
     private Location lastLocation;
 
-    private static final String TAG = MainActivity.class.getName();
-    private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
+    private static final String TAG = WordOfMouth.class.getName();
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
@@ -46,7 +45,7 @@ public class WordOfMouth extends Application implements
     @Override
     public void onCreate() {
         super.onCreate();
-
+        registerActivityLifecycleCallbacks(this);
         initializeLocation();
 
         User.initInstance();
@@ -65,7 +64,7 @@ public class WordOfMouth extends Application implements
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        Toast.makeText(this, "----------onCreate()---------", Toast.LENGTH_LONG).show();
+        Log.i(TAG, "----------onCreate()---------");
     }
 
     @Override
@@ -76,23 +75,12 @@ public class WordOfMouth extends Application implements
     @Override
     public void onActivityResumed(Activity activity) {
         Log.i(TAG,"----------onActivityResumed()---------");
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            Criteria criteria = new Criteria();
-            String bestProvider = locationManager.getBestProvider(criteria, true);
-            Location location = locationManager.getLastKnownLocation(bestProvider);
-            if (location != null) {
-                onLocationChanged(location);
-            }
-            locationManager.requestLocationUpdates(bestProvider, 2000, 0, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
-
-        }
+        initializeLocation();
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Toast.makeText(this, "----------onActivityPaused()---------", Toast.LENGTH_LONG).show();
+        Log.i(TAG, "----------onActivityPaused()---------");
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager.removeUpdates(this);
@@ -135,7 +123,7 @@ public class WordOfMouth extends Application implements
 
     }
 
-    private void initializeLocation(){
+    public void initializeLocation(){
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -145,7 +133,7 @@ public class WordOfMouth extends Application implements
             if (location != null) {
                 onLocationChanged(location);
             }
-            locationManager.requestLocationUpdates(bestProvider, 5, 5, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
+            locationManager.requestLocationUpdates(bestProvider, 15000, 1000, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
 
         }
     }
@@ -153,6 +141,5 @@ public class WordOfMouth extends Application implements
     public Location getLastLocation() {
         return lastLocation;
     }
-
 
 }

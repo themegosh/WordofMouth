@@ -174,6 +174,9 @@ public class MainActivity extends AppCompatActivity implements
             //hide keyboard
             InputMethodManager imm = (InputMethodManager) getBaseContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
+
+            //hide the bottom panel
+
             return true;
         }
         else if (id == R.id.btnSearch) {
@@ -260,6 +263,7 @@ public class MainActivity extends AppCompatActivity implements
 
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
+                    wom.initializeLocation();
                     centerMapOnMyLocation();
                     Log.d(TAG, "onRequestPermissionsResult: Allowed");
 
@@ -338,11 +342,16 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onPanelCollapsed(View panel) {
                 Log.i(TAG, "onPanelCollapsed");
+
+                //comply with google's TOS and don't hide the logo
+                map.setPadding(0,0,0,(int)getResources().getDimension(R.dimen.sliding_toolbar_height));
             }
+
 
             @Override
             public void onPanelAnchored(View panel) {
                 Log.i(TAG, "onPanelAnchored");
+                map.setPadding(0, (int)(PANEL_ANCHORED * 750), 0, (int)(PANEL_ANCHORED * 950));
             }
 
             @Override

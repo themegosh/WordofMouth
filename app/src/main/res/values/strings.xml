@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Word of Mouth</string>
     <string name="facebook_app_id">953709408018226</string>
-    <string name="title_activity_main">Friend\'s Reviews</string>
+    <string name="title_activity_main">Word of Mouth</string>
     <string name="title_activity_add_review">Add Review</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
