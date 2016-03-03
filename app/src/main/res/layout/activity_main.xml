@@ -94,7 +94,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="bottom"
-                sothree:umanoPanelHeight="68dp"
+                sothree:umanoPanelHeight="@dimen/sliding_toolbar_height"
                 sothree:umanoShadowHeight="6dp"
                 sothree:umanoParallaxOffset="300dp"
                 sothree:umanoDragView="@+id/sliderBar"
@@ -127,18 +127,27 @@
                     <!-- Bottom toolbar info goes in here -->
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="68dp"
+                        android:layout_height="@dimen/sliding_toolbar_height"
                         android:orientation="horizontal">
-                        <TextView
-                            android:id="@+id/lblPlaceTitle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="match_parent"
-                            android:layout_marginLeft="@dimen/md_keylines"
-                            android:text=""
-                            android:gravity="center_vertical"
-                            android:textAppearance="@style/TextAppearance.AppCompat.Title"/>
-
+                        <FrameLayout android:id="@+id/handle" android:background="@color/colorPrimary" android:layout_width="fill_parent" android:layout_height="@dimen/sliding_toolbar_height" android:minWidth="48.0dip">
+                            <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@+id/handle_bar" android:layout_width="fill_parent" android:layout_height="fill_parent">
+                                <ImageButton android:id="@+id/action1" android:background="?selectableItemBackgroundBorderless" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_filter_list_white_24dp" android:layout_weight="1.0" />
+                                <ImageButton android:id="@+id/action2" android:background="@android:color/transparent" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_phone_white_24dp" android:layout_weight="1.0" />
+                                <ImageButton android:id="@+id/action3" android:background="@android:color/transparent" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_public_white_24dp" android:layout_weight="1.0" />
+                                <ImageButton android:id="@+id/action4" android:background="@android:color/transparent" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_directions_white_24dp" android:layout_weight="1.0" />
+                                <Button
+                                    android:id="@+id/btnTest"
+                                    android:layout_width="0.0dip"
+                                    android:layout_weight="1.0"
+                                    android:layout_height="fill_parent"
+                                    android:layout_below="@+id/loc_desc"
+                                    style="?android:attr/borderlessButtonStyle"
+                                    android:textColor="@color/white"
+                                    android:text="Action" />
+                            </LinearLayout>
+                        </FrameLayout>
                     </LinearLayout>
+
                     <!-- Bottom Scrollview content goes in here (location details + review cards) -->
                     <ScrollView
                     android:id="@+id/sv"

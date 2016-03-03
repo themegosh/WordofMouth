@@ -300,6 +300,9 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
+        //comply with google's TOS and don't hide the logo
+        map.setPadding(0,0,0,(int)getResources().getDimension(R.dimen.sliding_toolbar_height));
+
         centerMapOnMyLocation();
 
 
@@ -382,7 +385,7 @@ public class MainActivity extends AppCompatActivity implements
                     null);
             txtSearch.setAdapter(placeAutocompleteAdapter);
 
-            lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
+            //lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
         }
     }
     private void initializeToolbar(){
@@ -571,7 +574,7 @@ public class MainActivity extends AppCompatActivity implements
             imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
 
             CharSequence placeName = place.getName();
-            lblPlaceTitle.setText(placeName);
+            //lblPlaceTitle.setText(placeName);
             //formatPlaceDetails(getResources(), place.getName(), place.getId(), place.getAddress(), place.getPhoneNumber(),place.getWebsiteUri()));
             String website = "";
             if (place.getWebsiteUri() != null)
