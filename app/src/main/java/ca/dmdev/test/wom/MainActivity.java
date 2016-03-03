@@ -15,6 +15,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -62,8 +63,7 @@ import ca.dmdev.test.wom.acccount.User;
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
         OnMapReadyCallback,
-        GoogleApiClient.OnConnectionFailedListener,
-        android.location.LocationListener{
+        GoogleApiClient.OnConnectionFailedListener{
 
     private static final String[] INITIAL_PERMS={
         android.Manifest.permission.ACCESS_FINE_LOCATION,
@@ -74,7 +74,7 @@ public class MainActivity extends AppCompatActivity implements
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
     private static final float PANEL_ANCHORED = 0.7f;
     private static final float PANEL_EXPANDED = 1.0f;
-    private static final int DEFAULT_PLACE_DISTANCE = 1000;
+    public static final int DEFAULT_PLACE_DISTANCE = 1000;
     private static final String TAG = MainActivity.class.getName();
 
     protected WordOfMouth wom;
@@ -82,15 +82,10 @@ public class MainActivity extends AppCompatActivity implements
     private SlidingUpPanelLayout slidingPanelLayout;
     private Toolbar toolbar;
     private FloatingActionButton fabAddLocation;
-    private static SupportMapFragment mapFragment;
     private GoogleMap map;
-    private LocationManager locationManager;
     private FragmentManager fragmentManager;
     private TextView lblPlaceTitle;
-    private TextView lblScrollView;
-    private ImageView imgToggleSlidingPanel;
     private Circle distanceCircle;
-    private Location lastLocation;
 
     //slider view related
     private RelativeLayout viewDistanceSelector;
@@ -102,8 +97,8 @@ public class MainActivity extends AppCompatActivity implements
     private MenuItem btnSearch;
     private MenuItem btnCloseSearch;
 
+    private PlaceAutocompleteAdapter placeAutocompleteAdapter;
     protected GoogleApiClient mGoogleApiClient;
-    private PlaceAutocompleteAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,47 +108,26 @@ public class MainActivity extends AppCompatActivity implements
         fragmentManager = getFragmentManager();
 
         //Initialize activity related resources, the order here is important
-        initializePermissions();
-        initializeLocation();
         initializeToolbar();
         initializeDrawerLayout();
         initializeSlidingPanel();
         initializeFab();
         initializeNavPanel();
+        initializePermissions();
         initializeMap();
         initializePlacesApi();
         initializeDistanceSlider();
     }
     @Override
     protected void onPause() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates(this);
-        }
         super.onPause();
     }
     @Override
     public void onStop(){
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates(this);
-        }
         super.onStop();
     }
     @Override
     protected void onResume() {
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            Criteria criteria = new Criteria();
-            String bestProvider = locationManager.getBestProvider(criteria, true);
-            Location location = locationManager.getLastKnownLocation(bestProvider);
-            if (location != null) {
-                onLocationChanged(location);
-            }
-            locationManager.requestLocationUpdates(bestProvider, 2000, 0, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
-
-        }
         super.onResume();
     }
     @Override
@@ -276,7 +250,7 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
 
         switch (requestCode) {
             case MY_PERMISSIONS_REQUEST_LOCATION: {
@@ -299,7 +273,6 @@ public class MainActivity extends AppCompatActivity implements
                     dialog.show();
 
                 }
-                return;
             }
 
             // other 'case' lines to check for other
@@ -337,23 +310,47 @@ public class MainActivity extends AppCompatActivity implements
         btnCloseSearch = menu.findItem(R.id.btnCloseSearch);
         return true;
     }
-    @Override
-    public void onLocationChanged(Location location) {
-        lastLocation = location;
-    }
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
 
-    }
-    @Override
-    public void onProviderEnabled(String provider) {
 
-    }
-    @Override
-    public void onProviderDisabled(String provider) {
 
-    }
+    private void initializeSlidingPanel(){
+        slidingPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        slidingPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
 
+                //move the FAB based on sliding bar's offset
+                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fabAddLocation.getLayoutParams();
+                params.bottomMargin = 200 + (int)(((0-1)*slideOffset) * 150);
+                fabAddLocation.setLayoutParams(params);
+
+            }
+
+            @Override
+            public void onPanelExpanded(View panel) {
+                Log.i(TAG, "onPanelExpanded");
+            }
+
+            @Override
+            public void onPanelCollapsed(View panel) {
+                Log.i(TAG, "onPanelCollapsed");
+            }
+
+            @Override
+            public void onPanelAnchored(View panel) {
+                Log.i(TAG, "onPanelAnchored");
+            }
+
+            @Override
+            public void onPanelHidden(View panel) {
+                Log.i(TAG, "onPanelHidden");
+            }
+        });
+        slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
+        //slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+    }
     private void initializePermissions(){
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION)
@@ -371,61 +368,22 @@ public class MainActivity extends AppCompatActivity implements
         }
 
     }
-    private void initializeLocation(){
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-            Criteria criteria = new Criteria();
-            String bestProvider = locationManager.getBestProvider(criteria, true);
-            Location location = locationManager.getLastKnownLocation(bestProvider);
-            if (location != null) {
-                onLocationChanged(location);
-            }
-            locationManager.requestLocationUpdates(bestProvider, 5, 5, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
+    private void initializePlacesApi(){
+        if (wom.getLastLocation() != null) {
+            Location loc = wom.getLastLocation();
+            LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(loc.getLatitude(), loc.getLongitude()), DEFAULT_PLACE_DISTANCE);
 
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .enableAutoManage(this, 0 /* clientId */, this)
+                    .addApi(Places.GEO_DATA_API)
+                    .build();
+
+            placeAutocompleteAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, latLngBounds,
+                    null);
+            txtSearch.setAdapter(placeAutocompleteAdapter);
+
+            lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
         }
-    }
-    private void initializeSlidingPanel(){
-        imgToggleSlidingPanel = (ImageView) findViewById(R.id.imgToggleSlidingPanel);
-        slidingPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
-        slidingPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
-            @Override
-            public void onPanelSlide(View panel, float slideOffset) {
-                //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
-
-                //move the FAB based on sliding bar's offset
-                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fabAddLocation.getLayoutParams();
-                params.bottomMargin = 200 + (int)(((0-1)*slideOffset) * 150);
-                fabAddLocation.setLayoutParams(params);
-
-            }
-
-            @Override
-            public void onPanelExpanded(View panel) {
-                Log.i(TAG, "onPanelExpanded");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_48dp);
-            }
-
-            @Override
-            public void onPanelCollapsed(View panel) {
-                Log.i(TAG, "onPanelCollapsed");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_48dp);
-            }
-
-            @Override
-            public void onPanelAnchored(View panel) {
-                Log.i(TAG, "onPanelAnchored");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_down_black_48dp);
-            }
-
-            @Override
-            public void onPanelHidden(View panel) {
-                Log.i(TAG, "onPanelHidden");
-                imgToggleSlidingPanel.setImageResource(R.drawable.ic_keyboard_arrow_up_black_48dp);
-            }
-        });
-        slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
-        slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
     }
     private void initializeToolbar(){
         toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -469,8 +427,8 @@ public class MainActivity extends AppCompatActivity implements
         ImageView profilePic = (ImageView) navHeaderView.findViewById(R.id.imageView);
         TextView profileName = (TextView) navHeaderView.findViewById(R.id.profileName);
 
-
-        profileName.setText(User.getInstance().getFirstName() + " " + User.getInstance().getLastName());
+        String name = User.getInstance().getFirstName() + " " + User.getInstance().getLastName();
+        profileName.setText(name);
         //profileName.setText("Firstname Lastname");
         Picasso.with(getApplicationContext()).load(User.getInstance().getPicUrl()).into(profilePic);
 
@@ -485,23 +443,7 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.getMapAsync(this);
 
     }
-    private void initializePlacesApi(){
-        if (lastLocation != null) {
-            LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), DEFAULT_PLACE_DISTANCE);
 
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
-                    .enableAutoManage(this, 0 /* clientId */, this)
-                    .addApi(Places.GEO_DATA_API)
-                    .build();
-
-            mAdapter = new PlaceAutocompleteAdapter(this, mGoogleApiClient, latLngBounds,
-                    null);
-            txtSearch.setAdapter(mAdapter);
-
-            lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
-            lblScrollView = (TextView) findViewById(R.id.lblScrollView);
-        }
-    }
     private void initializeDistanceSlider(){
         viewDistanceSelector = (RelativeLayout) findViewById(R.id.viewDistanceSelector);
 
@@ -526,19 +468,10 @@ public class MainActivity extends AppCompatActivity implements
                         if (distanceCircle != null) {
                             distanceCircle.setRadius(i);
                         } else {
-                            if (lastLocation == null) {
-                                if (ContextCompat.checkSelfPermission(getBaseContext(), android.Manifest.permission.ACCESS_FINE_LOCATION)
-                                        == PackageManager.PERMISSION_GRANTED) {
-                                    locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
-                                    Criteria criteria = new Criteria();
-                                    String bestProvider = locationManager.getBestProvider(criteria, true);
-                                    lastLocation = locationManager.getLastKnownLocation(bestProvider);
-                                }
-                            }
-
-                            if (lastLocation != null) {
+                            if (wom.getLastLocation() != null) {
+                                Location loc = wom.getLastLocation();
                                 CircleOptions distanceCircleOptions = new CircleOptions()
-                                        .center(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))
+                                        .center(new LatLng(loc.getLatitude(), loc.getLongitude()))
                                         .radius(i)
                                         .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimaryDark))
                                         .fillColor(R.color.colorPrimaryDark);
@@ -546,8 +479,9 @@ public class MainActivity extends AppCompatActivity implements
                             }
                         }
 
-                        if (mAdapter != null && lastLocation != null){
-                            mAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), i));
+                        if (placeAutocompleteAdapter != null && wom.getLastLocation() != null){
+                            Location loc = wom.getLastLocation();
+                            placeAutocompleteAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(loc.getLatitude(), loc.getLongitude()), i));
                         }
                     }
                 }
@@ -555,19 +489,16 @@ public class MainActivity extends AppCompatActivity implements
         sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
 
     }
-    private LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
-        LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
-        LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
-        return new LatLngBounds(southwest, northeast);
-    }
+
     private void centerMapOnMyLocation(){
-        if (lastLocation != null)
+        if (wom.getLastLocation() != null)
         {
+            Location loc = wom.getLastLocation();
             map.animateCamera(CameraUpdateFactory.newLatLngZoom(
-                    new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()), 13));
+                    new LatLng(loc.getLatitude(), loc.getLongitude()), 13));
 
             CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(lastLocation.getLatitude(), lastLocation.getLongitude()))      // Sets the center of the map to location user
+                .target(new LatLng(loc.getLatitude(), loc.getLongitude()))      // Sets the center of the map to location user
                 .zoom(14)                   // Sets the zoom
                 .bearing(0)                // Sets the orientation of the camera to north
                 .tilt(40)                   // Sets the tilt of the camera to 30 degrees
@@ -575,6 +506,13 @@ public class MainActivity extends AppCompatActivity implements
             map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
         }
+    }
+
+
+    private LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
+        LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
+        LatLng northeast = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 45);
+        return new LatLngBounds(southwest, northeast);
     }
 
     /**
@@ -595,11 +533,9 @@ public class MainActivity extends AppCompatActivity implements
              The adapter stores each Place suggestion in a AutocompletePrediction from which we
              read the place ID and title.
               */
-            final AutocompletePrediction item = mAdapter.getItem(position);
+            final AutocompletePrediction item = placeAutocompleteAdapter.getItem(position);
             final String placeId = item.getPlaceId();
-            final CharSequence primaryText = item.getPrimaryText(null);
-
-            Log.i(TAG, "Autocomplete item selected: " + primaryText);
+            //final CharSequence primaryText = item.getPrimaryText(null);
 
             /*
              Issue a request to the Places Geo Data API to retrieve a Place object with additional
@@ -608,10 +544,6 @@ public class MainActivity extends AppCompatActivity implements
             PendingResult<PlaceBuffer> placeResult = Places.GeoDataApi
                     .getPlaceById(mGoogleApiClient, placeId);
             placeResult.setResultCallback(mUpdatePlaceDetailsCallback);
-
-            Toast.makeText(getApplicationContext(), "Clicked: " + primaryText,
-                    Toast.LENGTH_SHORT).show();
-            Log.i(TAG, "Called getPlaceById to get Place details for " + placeId);
         }
     };
 
@@ -622,7 +554,7 @@ public class MainActivity extends AppCompatActivity implements
     private ResultCallback<PlaceBuffer> mUpdatePlaceDetailsCallback
             = new ResultCallback<PlaceBuffer>() {
         @Override
-        public void onResult(PlaceBuffer places) {
+        public void onResult(@NonNull PlaceBuffer places) {
             if (!places.getStatus().isSuccess()) {
                 // Request did not complete successfully
                 Log.e(TAG, "Place query did not complete. Error: " + places.getStatus().toString());
@@ -638,13 +570,17 @@ public class MainActivity extends AppCompatActivity implements
             InputMethodManager imm = (InputMethodManager) getBaseContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
 
-            // Format details of the place for display and show it in a TextView.
-            lblPlaceTitle.setText("Name: "+ place.getName());
+            CharSequence placeName = place.getName();
+            lblPlaceTitle.setText(placeName);
             //formatPlaceDetails(getResources(), place.getName(), place.getId(), place.getAddress(), place.getPhoneNumber(),place.getWebsiteUri()));
             String website = "";
             if (place.getWebsiteUri() != null)
                 website = place.getWebsiteUri().toString();
-            lblScrollView.setText("ID: " + place.getId() +
+
+
+            TextView locationDescription = (TextView) findViewById(R.id.loc_desc);
+
+            locationDescription.setText("ID: " + place.getId() +
                     "\nAddress: " + place.getAddress() +
                     "\nLat/Lang: " + place.getLatLng().toString() +
                     "\nPhone: " + place.getPhoneNumber() +
@@ -653,6 +589,8 @@ public class MainActivity extends AppCompatActivity implements
             //anchor the panel
             //slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
             slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.ANCHORED);
+
+            updatePlacePhoto(place.getId());
 
             //move the map
             CameraPosition cameraPosition = new CameraPosition.Builder()
@@ -700,6 +638,37 @@ public class MainActivity extends AppCompatActivity implements
         Toast.makeText(this,
                 "Could not connect to Google API Client: Error " + connectionResult.getErrorCode(),
                 Toast.LENGTH_SHORT).show();
+    }
+
+    private void updatePlacePhoto(String placeId) {
+
+        final ImageView mImageView = (ImageView)findViewById(R.id.loc_img);
+
+        // Create a new AsyncTask that displays the bitmap and attribution once loaded.
+        new PlacesPhotoTask(mImageView.getWidth(), mImageView.getHeight(), mGoogleApiClient) {
+            @Override
+            protected void onPreExecute() {
+                // Display a temporary image to show while bitmap is loading.
+                mImageView.setImageResource(R.drawable.placeholder);
+            }
+
+            @Override
+            protected void onPostExecute(AttributedPhoto attributedPhoto) {
+                if (attributedPhoto != null) {
+                    // Photo has been loaded, display it.
+                    mImageView.setImageBitmap(attributedPhoto.bitmap);
+
+                    // Display the attribution as HTML content if set.
+                    /*if (attributedPhoto.attribution == null) {
+                        mText.setVisibility(View.GONE);
+                    } else {
+                        mText.setVisibility(View.VISIBLE);
+                        mText.setText(Html.fromHtml(attributedPhoto.attribution.toString()));
+                    }*/
+
+                }
+            }
+        }.execute(placeId);
     }
 
     public static void hideKeyboard(Activity activity) {
