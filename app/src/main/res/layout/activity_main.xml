@@ -131,11 +131,11 @@
                         android:orientation="horizontal">
                         <FrameLayout android:id="@+id/handle" android:background="@color/colorPrimary" android:layout_width="fill_parent" android:layout_height="@dimen/sliding_toolbar_height" android:minWidth="48.0dip">
                             <LinearLayout android:gravity="center" android:orientation="horizontal" android:id="@+id/handle_bar" android:layout_width="fill_parent" android:layout_height="fill_parent">
-                                <ImageButton android:id="@+id/action2" android:background="?selectableItemBackgroundBorderless" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_phone_white_24dp" android:layout_weight="1.0" />
-                                <ImageButton android:id="@+id/action3" android:background="?selectableItemBackgroundBorderless" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_public_white_24dp" android:layout_weight="1.0" />
+                                <ImageButton android:id="@+id/btnPhonePlace" android:background="?selectableItemBackgroundBorderless" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_phone_white_24dp" android:layout_weight="1.0" />
+                                <ImageButton android:id="@+id/btnWebPlace" android:background="?selectableItemBackgroundBorderless" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_public_white_24dp" android:layout_weight="1.0" />
                                 <ImageButton android:id="@+id/action4" android:background="?selectableItemBackgroundBorderless" android:clickable="true" android:layout_height="fill_parent" android:layout_width="0.0dip" android:src="@drawable/ic_directions_white_24dp" android:layout_weight="1.0" />
                                 <Button
-                                    android:id="@+id/btnTest"
+                                    android:id="@+id/btnAddReview"
                                     android:layout_width="0.0dip"
                                     android:layout_weight="1.0"
                                     android:layout_height="fill_parent"

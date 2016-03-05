@@ -15,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
@@ -34,6 +35,7 @@ public class WordOfMouth extends Application implements
     //requests for updated reviews too?
     private LocationManager locationManager;
     private Location lastLocation;
+    private PlaceLocation selectedPlace;
 
     private static final String TAG = WordOfMouth.class.getName();
 
@@ -142,4 +144,11 @@ public class WordOfMouth extends Application implements
         return lastLocation;
     }
 
+    public PlaceLocation getSelectedPlace() {
+        return selectedPlace;
+    }
+
+    public void setSelectedPlace(PlaceLocation selectedPlace) {
+        this.selectedPlace = selectedPlace;
+    }
 }

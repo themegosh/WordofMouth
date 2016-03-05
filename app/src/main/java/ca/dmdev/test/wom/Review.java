@@ -1,5 +1,7 @@
 package ca.dmdev.test.wom;
 
+import com.google.android.gms.location.places.Place;
+
 import java.util.List;
 
 import ca.dmdev.test.wom.acccount.User;

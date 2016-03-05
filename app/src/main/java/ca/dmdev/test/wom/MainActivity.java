@@ -9,7 +9,9 @@ import android.content.pm.PackageManager;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -171,6 +173,9 @@ public class MainActivity extends AppCompatActivity implements
             btnCloseSearch.setVisible(false);
             btnSearch.setVisible(true);
             txtSearch.setText("");
+
+            slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+
             //hide keyboard
             InputMethodManager imm = (InputMethodManager) getBaseContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
@@ -362,6 +367,38 @@ public class MainActivity extends AppCompatActivity implements
         slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
         //slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+
+        ImageButton btnPhonePlace = (ImageButton) findViewById(R.id.btnPhonePlace);
+        btnPhonePlace.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if (wom.getSelectedPlace() != null) {
+                            if (wom.getSelectedPlace().getPhone() != null) {
+                                String uri = "tel:" + wom.getSelectedPlace().getPhone();
+                                Intent intent = new Intent(Intent.ACTION_DIAL);
+                                intent.setData(Uri.parse(uri));
+                                startActivity(intent);
+                            }
+                        }
+                    }
+                }
+        );
+
+        ImageButton btnWebPlace = (ImageButton) findViewById(R.id.btnWebPlace);
+        btnWebPlace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (wom.getSelectedPlace().getUrl() != null) {
+                    Log.d(TAG, "-------- WEBSITE ----------- " +  wom.getSelectedPlace().getUrl());
+                    Intent i = new Intent(Intent.ACTION_VIEW);
+                    i.setData(wom.getSelectedPlace().getUrl());
+                    startActivity(i);
+                }
+            }
+        });
+
+
     }
     private void initializePermissions(){
         if (ContextCompat.checkSelfPermission(this,
@@ -592,11 +629,15 @@ public class MainActivity extends AppCompatActivity implements
 
             TextView locationDescription = (TextView) findViewById(R.id.loc_desc);
 
+            wom.setSelectedPlace(new PlaceLocation(place));
+
             locationDescription.setText("ID: " + place.getId() +
                     "\nAddress: " + place.getAddress() +
                     "\nLat/Lang: " + place.getLatLng().toString() +
                     "\nPhone: " + place.getPhoneNumber() +
                     "\nWebsite: " + website);
+
+
 
             //anchor the panel
             //slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
