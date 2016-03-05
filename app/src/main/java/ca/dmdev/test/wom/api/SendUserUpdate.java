@@ -30,8 +30,8 @@ public class SendUserUpdate extends AsyncTask<JSONObject, Void, String> {
                 if (params[0] == null || params[1] == null){
                     Log.e(TAG, "This shouldn't happen. Both facebookUser and/or facebookFriends is empty!!!!");
                 } else {
-                    Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
-                    Log.d(TAG, "json data to send: " + params[0].toString());
+                    //Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
+                    //Log.d(TAG, "json data to send: " + params[0].toString());
 
                     //send the user info to the server
                     RequestBody requestBody = new MultipartBody.Builder()
@@ -47,7 +47,10 @@ public class SendUserUpdate extends AsyncTask<JSONObject, Void, String> {
                             .build();
 
                     Response response = client.newCall(request).execute();
-                    Log.d(TAG, "Response: " + response.body().string());
+                    //Log.d(TAG, "Response: " + response.body().string());
+
+                    response.body().close();
+
                 }
             }
         } catch(Exception ex) {

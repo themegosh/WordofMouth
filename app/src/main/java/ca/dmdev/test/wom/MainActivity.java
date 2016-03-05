@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements
     private MenuItem btnSearch;
     private MenuItem btnCloseSearch;
 
-    private PlaceAutocompleteAdapter placeAutocompleteAdapter;
+    PlaceAutocompleteAdapter placeAutocompleteAdapter;
     protected GoogleApiClient mGoogleApiClient;
 
     @Override
@@ -195,6 +195,18 @@ public class MainActivity extends AppCompatActivity implements
             btnCloseSearch.setVisible(true);
             btnSearch.setVisible(false);
             txtSearch.requestFocus();
+
+            //update geolocation on search tap
+            if (wom.getLastLocation() != null) {
+                Location loc = wom.getLastLocation();
+                LatLngBounds latLngBounds = convertCenterAndRadiusToBounds(new LatLng(loc.getLatitude(), loc.getLongitude()), sliderDistance.getValue());
+
+                if (placeAutocompleteAdapter != null) {
+                    placeAutocompleteAdapter.setBounds(latLngBounds);
+                }
+
+            }
+
             //force show keyboard
             InputMethodManager inputMethodManager=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
             inputMethodManager.toggleSoftInputFromWindow(txtSearch.getWindowToken(), InputMethodManager.SHOW_FORCED, 0);
@@ -329,8 +341,6 @@ public class MainActivity extends AppCompatActivity implements
         return true;
     }
 
-
-
     private void initializeSlidingPanel(){
         slidingPanelLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
         slidingPanelLayout.setPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
@@ -457,6 +467,8 @@ public class MainActivity extends AppCompatActivity implements
             txtSearch.setAdapter(placeAutocompleteAdapter);
 
             //lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
+        } else {
+            Log.d(TAG, "initializePlacesApi() wom.getLastLocation() == null");
         }
     }
     private void initializeToolbar(){
@@ -488,10 +500,6 @@ public class MainActivity extends AppCompatActivity implements
         profileName.setText(name);
         //profileName.setText("Firstname Lastname");
         Picasso.with(getApplicationContext()).load(User.getInstance().getPicUrl()).into(profilePic);
-
-        Log.d(TAG, "picUrl: " + User.getInstance().getPicUrl());
-
-        Log.d(TAG, "initializeNavPanel() User(): " + User.getInstance().getFirstName() + " " + User.getInstance().getLastName());
     }
     private void initializeMap() {
 
@@ -500,7 +508,6 @@ public class MainActivity extends AppCompatActivity implements
         mapFragment.getMapAsync(this);
 
     }
-
     private void initializeDistanceSlider(){
         viewDistanceSelector = (RelativeLayout) findViewById(R.id.viewDistanceSelector);
 
@@ -518,34 +525,36 @@ public class MainActivity extends AppCompatActivity implements
         });
 
         sliderDistance = (Slider) findViewById(R.id.sliderDistance);
+        sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
         sliderDistance.setOnValueChangedListener(
-                new Slider.OnValueChangedListener() {
-                    @Override
-                    public void onValueChanged(int i) {
-                        if (distanceCircle != null) {
-                            distanceCircle.setRadius(i);
-                        } else {
-                            if (wom.getLastLocation() != null) {
-                                Location loc = wom.getLastLocation();
-                                CircleOptions distanceCircleOptions = new CircleOptions()
-                                        .center(new LatLng(loc.getLatitude(), loc.getLongitude()))
-                                        .radius(i)
-                                        .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimaryDark))
-                                        .fillColor(R.color.colorPrimaryDark);
-                                distanceCircle = map.addCircle(distanceCircleOptions);
-                            }
-                        }
-
-                        if (placeAutocompleteAdapter != null && wom.getLastLocation() != null){
+            new Slider.OnValueChangedListener() {
+                @Override
+                public void onValueChanged(int newValue) {
+                    if (distanceCircle != null) {
+                        distanceCircle.setRadius(newValue);
+                    } else {
+                        if (wom.getLastLocation() != null) {
                             Location loc = wom.getLastLocation();
-                            placeAutocompleteAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(loc.getLatitude(), loc.getLongitude()), i));
+                            CircleOptions distanceCircleOptions = new CircleOptions()
+                                    .center(new LatLng(loc.getLatitude(), loc.getLongitude()))
+                                    .radius(newValue)
+                                    .strokeColor(ContextCompat.getColor(getBaseContext(), R.color.colorPrimaryDark))
+                                    .fillColor(R.color.colorPrimaryDark);
+                            distanceCircle = map.addCircle(distanceCircleOptions);
                         }
                     }
-                }
-        );
-        sliderDistance.setValue(DEFAULT_PLACE_DISTANCE); //default 1000m?
 
-    }
+                    if (placeAutocompleteAdapter != null && wom.getLastLocation() != null){
+                        Location loc = wom.getLastLocation();
+                        placeAutocompleteAdapter.setBounds(convertCenterAndRadiusToBounds(new LatLng(loc.getLatitude(), loc.getLongitude()), newValue));
+                    }
+
+                    if (placeAutocompleteAdapter == null)
+                        Log.d(TAG, "---- placeAutocompleteAdapter == null!?  wom.getLastLocation() == " + wom.getLastLocation());
+                }
+            }
+        );
+}
 
     private void updateSlidingToolbar(){
 
@@ -558,6 +567,36 @@ public class MainActivity extends AppCompatActivity implements
             btnWebPlace.setVisibility(View.VISIBLE);
         else
             btnWebPlace.setVisibility(View.GONE);
+    }
+    private void updatePlacePhoto(String placeId) {
+
+        final ImageView mImageView = (ImageView)findViewById(R.id.loc_img);
+
+        // Create a new AsyncTask that displays the bitmap and attribution once loaded.
+        new PlacesPhotoTask(mImageView.getWidth(), mImageView.getHeight(), mGoogleApiClient) {
+            @Override
+            protected void onPreExecute() {
+                // Display a temporary image to show while bitmap is loading.
+                mImageView.setImageResource(R.drawable.placeholder);
+            }
+
+            @Override
+            protected void onPostExecute(AttributedPhoto attributedPhoto) {
+                if (attributedPhoto != null) {
+                    // Photo has been loaded, display it.
+                    mImageView.setImageBitmap(attributedPhoto.bitmap);
+
+                    // Display the attribution as HTML content if set.
+                    /*if (attributedPhoto.attribution == null) {
+                        mText.setVisibility(View.GONE);
+                    } else {
+                        mText.setVisibility(View.VISIBLE);
+                        mText.setText(Html.fromHtml(attributedPhoto.attribution.toString()));
+                    }*/
+
+                }
+            }
+        }.execute(placeId);
     }
 
     private void centerMapOnMyLocation(){
@@ -577,7 +616,6 @@ public class MainActivity extends AppCompatActivity implements
 
         }
     }
-
 
     private LatLngBounds convertCenterAndRadiusToBounds(LatLng center, double radius) {
         LatLng southwest = SphericalUtil.computeOffset(center, radius * Math.sqrt(2.0), 225);
@@ -603,6 +641,8 @@ public class MainActivity extends AppCompatActivity implements
              The adapter stores each Place suggestion in a AutocompletePrediction from which we
              read the place ID and title.
               */
+
+
             final AutocompletePrediction item = placeAutocompleteAdapter.getItem(position);
             final String placeId = item.getPlaceId();
             //final CharSequence primaryText = item.getPrimaryText(null);
@@ -715,36 +755,7 @@ public class MainActivity extends AppCompatActivity implements
                 Toast.LENGTH_SHORT).show();
     }
 
-    private void updatePlacePhoto(String placeId) {
 
-        final ImageView mImageView = (ImageView)findViewById(R.id.loc_img);
-
-        // Create a new AsyncTask that displays the bitmap and attribution once loaded.
-        new PlacesPhotoTask(mImageView.getWidth(), mImageView.getHeight(), mGoogleApiClient) {
-            @Override
-            protected void onPreExecute() {
-                // Display a temporary image to show while bitmap is loading.
-                mImageView.setImageResource(R.drawable.placeholder);
-            }
-
-            @Override
-            protected void onPostExecute(AttributedPhoto attributedPhoto) {
-                if (attributedPhoto != null) {
-                    // Photo has been loaded, display it.
-                    mImageView.setImageBitmap(attributedPhoto.bitmap);
-
-                    // Display the attribution as HTML content if set.
-                    /*if (attributedPhoto.attribution == null) {
-                        mText.setVisibility(View.GONE);
-                    } else {
-                        mText.setVisibility(View.VISIBLE);
-                        mText.setText(Html.fromHtml(attributedPhoto.attribution.toString()));
-                    }*/
-
-                }
-            }
-        }.execute(placeId);
-    }
 
     public static void hideKeyboard(Activity activity) {
         InputMethodManager imm = (InputMethodManager) activity.getSystemService(Activity.INPUT_METHOD_SERVICE);

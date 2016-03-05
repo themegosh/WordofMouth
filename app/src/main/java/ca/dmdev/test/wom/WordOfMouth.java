@@ -65,13 +65,12 @@ public class WordOfMouth extends Application implements
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        if (activity.getClass() == MainActivity.class)
+            initializeLocation();
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-
-        if (activity.getClass() == MainActivity.class)
-            initializeLocation();
     }
 
     @Override
@@ -128,6 +127,7 @@ public class WordOfMouth extends Application implements
     }
 
     public void initializeLocation(){
+
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
             locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -136,8 +136,10 @@ public class WordOfMouth extends Application implements
             Location location = locationManager.getLastKnownLocation(bestProvider);
             if (location != null) {
                 onLocationChanged(location);
+            } else {
+                Log.d(TAG, "initializeLocation() could not call onLocationChanged() because of NULL getLastKnownLocation");
             }
-            locationManager.requestLocationUpdates(bestProvider, 15000, 1000, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
+            locationManager.requestLocationUpdates(bestProvider, 15000, 0, this);  // time in miliseconds, distance in meters (Distance drains battry life) originally set to 20000 and 0
 
         }
     }
