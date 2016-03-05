@@ -48,7 +48,6 @@ public class WordOfMouth extends Application implements
     public void onCreate() {
         super.onCreate();
         registerActivityLifecycleCallbacks(this);
-        initializeLocation();
 
         User.initInstance();
     }
@@ -66,41 +65,44 @@ public class WordOfMouth extends Application implements
 
     @Override
     public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
-        Log.i(TAG, "----------onCreate()---------");
     }
 
     @Override
     public void onActivityStarted(Activity activity) {
-        Log.i(TAG,"----------onActivityStarted()---------");
+
+        if (activity.getClass() == MainActivity.class)
+            initializeLocation();
     }
 
     @Override
     public void onActivityResumed(Activity activity) {
-        Log.i(TAG,"----------onActivityResumed()---------");
-        initializeLocation();
+
+        if (activity.getClass() == MainActivity.class)
+            initializeLocation();
     }
 
     @Override
     public void onActivityPaused(Activity activity) {
-        Log.i(TAG, "----------onActivityPaused()---------");
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates(this);
+        if (activity.getClass() == MainActivity.class) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                locationManager.removeUpdates(this);
+            }
         }
     }
 
     @Override
     public void onActivityStopped(Activity activity) {
-        Log.i(TAG,"----------onActivityStopped()---------");
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates(this);
+        if (activity.getClass() == MainActivity.class) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                    == PackageManager.PERMISSION_GRANTED) {
+                locationManager.removeUpdates(this);
+            }
         }
     }
 
     @Override
     public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-        Log.i(TAG,"----------onActivitySaveInstanceState()---------");
     }
 
     @Override

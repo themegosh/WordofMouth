@@ -32,6 +32,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -88,6 +89,12 @@ public class MainActivity extends AppCompatActivity implements
     private FragmentManager fragmentManager;
     private TextView lblPlaceTitle;
     private Circle distanceCircle;
+
+    //sliding panel toolbar
+    private ImageButton btnPhonePlace;
+    private ImageButton btnWebPlace;
+    private ImageButton btnNavPlace;
+    private Button btnAddReview;
 
     //slider view related
     private RelativeLayout viewDistanceSelector;
@@ -368,13 +375,14 @@ public class MainActivity extends AppCompatActivity implements
         //slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
         slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
 
-        ImageButton btnPhonePlace = (ImageButton) findViewById(R.id.btnPhonePlace);
+        btnPhonePlace = (ImageButton) findViewById(R.id.btnPhonePlace);
         btnPhonePlace.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (wom.getSelectedPlace() != null) {
-                            if (wom.getSelectedPlace().getPhone() != null) {
+            new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (wom.getSelectedPlace() != null) {
+                        if (wom.getSelectedPlace().getPhone() != null) {
+                            if (wom.getSelectedPlace().getPhone().length() > 0) {
                                 String uri = "tel:" + wom.getSelectedPlace().getPhone();
                                 Intent intent = new Intent(Intent.ACTION_DIAL);
                                 intent.setData(Uri.parse(uri));
@@ -383,14 +391,14 @@ public class MainActivity extends AppCompatActivity implements
                         }
                     }
                 }
+            }
         );
 
-        ImageButton btnWebPlace = (ImageButton) findViewById(R.id.btnWebPlace);
+        btnWebPlace = (ImageButton) findViewById(R.id.btnWebPlace);
         btnWebPlace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (wom.getSelectedPlace().getUrl() != null) {
-                    Log.d(TAG, "-------- WEBSITE ----------- " +  wom.getSelectedPlace().getUrl());
                     Intent i = new Intent(Intent.ACTION_VIEW);
                     i.setData(wom.getSelectedPlace().getUrl());
                     startActivity(i);
@@ -398,7 +406,33 @@ public class MainActivity extends AppCompatActivity implements
             }
         });
 
+        btnNavPlace = (ImageButton) findViewById(R.id.btnNavPlace);
+        btnNavPlace.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (wom.getSelectedPlace().getAddress() != null) {
+                    Intent intent = new Intent(Intent.ACTION_VIEW,
+                            Uri.parse("google.navigation:q="+Uri.encode(wom.getSelectedPlace().getAddress().toString())));
+                    startActivity(intent);
+                }
+            }
+        });
 
+        btnAddReview = (Button) findViewById(R.id.btnAddReview);
+        btnAddReview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    Intent reviewActivityIntent = new Intent(MainActivity.this,
+                            AddReviewActivity.class);
+
+                    startActivityForResult(reviewActivityIntent, 1);
+                } catch (Exception e) {
+                    Toast.makeText(getBaseContext(), e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
     private void initializePermissions(){
         if (ContextCompat.checkSelfPermission(this,
@@ -539,6 +573,19 @@ public class MainActivity extends AppCompatActivity implements
 
     }
 
+    private void updateSlidingToolbar(){
+
+        if (wom.getSelectedPlace().getPhone().length() > 0)
+            btnPhonePlace.setVisibility(View.VISIBLE);
+        else
+            btnPhonePlace.setVisibility(View.GONE);
+
+        if (wom.getSelectedPlace().getUrl() != null)
+            btnWebPlace.setVisibility(View.VISIBLE);
+        else
+            btnWebPlace.setVisibility(View.GONE);
+    }
+
     private void centerMapOnMyLocation(){
         if (wom.getLastLocation() != null)
         {
@@ -630,6 +677,7 @@ public class MainActivity extends AppCompatActivity implements
             TextView locationDescription = (TextView) findViewById(R.id.loc_desc);
 
             wom.setSelectedPlace(new PlaceLocation(place));
+            updateSlidingToolbar();
 
             locationDescription.setText("ID: " + place.getId() +
                     "\nAddress: " + place.getAddress() +
