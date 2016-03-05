@@ -84,7 +84,6 @@ public class MainActivity extends AppCompatActivity implements
 
     private SlidingUpPanelLayout slidingPanelLayout;
     private Toolbar toolbar;
-    private FloatingActionButton fabAddLocation;
     private GoogleMap map;
     private FragmentManager fragmentManager;
     private TextView lblPlaceTitle;
@@ -120,7 +119,6 @@ public class MainActivity extends AppCompatActivity implements
         initializeToolbar();
         initializeDrawerLayout();
         initializeSlidingPanel();
-        initializeFab();
         initializeNavPanel();
         initializePermissions();
         initializeMap();
@@ -182,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements
             txtSearch.setText("");
 
             slidingPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.HIDDEN);
+            wom.setSelectedPlace(null);
 
             //hide keyboard
             InputMethodManager imm = (InputMethodManager) getBaseContext().getSystemService(Activity.INPUT_METHOD_SERVICE);
@@ -339,10 +338,6 @@ public class MainActivity extends AppCompatActivity implements
             public void onPanelSlide(View panel, float slideOffset) {
                 //Log.i(TAG, "onPanelSlide, offset " + slideOffset);
 
-                //move the FAB based on sliding bar's offset
-                ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) fabAddLocation.getLayoutParams();
-                params.bottomMargin = 200 + (int)(((0-1)*slideOffset) * 150);
-                fabAddLocation.setLayoutParams(params);
 
             }
 
@@ -355,15 +350,11 @@ public class MainActivity extends AppCompatActivity implements
             public void onPanelCollapsed(View panel) {
                 Log.i(TAG, "onPanelCollapsed");
 
-                //comply with google's TOS and don't hide the logo
-                map.setPadding(0,0,0,(int)getResources().getDimension(R.dimen.sliding_toolbar_height));
             }
-
 
             @Override
             public void onPanelAnchored(View panel) {
                 Log.i(TAG, "onPanelAnchored");
-                map.setPadding(0, (int)(PANEL_ANCHORED * 750), 0, (int)(PANEL_ANCHORED * 950));
             }
 
             @Override
@@ -483,23 +474,6 @@ public class MainActivity extends AppCompatActivity implements
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
         toggle.syncState();
-    }
-    private void initializeFab(){
-        fabAddLocation = (FloatingActionButton) findViewById(R.id.fab_save);
-        fabAddLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    Intent reviewActivityIntent = new Intent(MainActivity.this,
-                            AddReviewActivity.class);
-
-                    startActivityForResult(reviewActivityIntent, 1);
-                } catch (Exception e) {
-                    Toast.makeText(getBaseContext(), e.getMessage(),
-                            Toast.LENGTH_LONG).show();
-                }
-            }
-        });
     }
     private void initializeNavPanel(){
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
