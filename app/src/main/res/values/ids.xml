@@ -2,5 +2,5 @@
 <resources>
     <item type="id" name="toolbar" />
     <item type="id" name="viewDistanceSelector" />
-    <item type="id" name="add_review_like" />
+    <item type="id" name="btnAddReviewLike" />
 </resources>

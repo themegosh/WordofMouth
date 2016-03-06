@@ -1,6 +1,8 @@
 package ca.dmdev.test.wom;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +11,19 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.like.LikeButton;
+import com.like.OnLikeListener;
+
+import ca.dmdev.test.wom.acccount.User;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class AddReviewActivity extends AppCompatActivity {
 
@@ -17,6 +32,12 @@ public class AddReviewActivity extends AppCompatActivity {
     Toolbar toolbar;
     DialogInterface.OnClickListener dialogBackConfirm;
     WordOfMouth wom;
+
+    EditText txtTitle;
+    EditText txtDescription;
+    LikeButton btnLike;
+    boolean isLiked;
+    Button btnSubmit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,11 +55,45 @@ public class AddReviewActivity extends AppCompatActivity {
             ab.setDisplayHomeAsUpEnabled(true);
             ab.setDisplayShowHomeEnabled(true);
         }
+
+        txtTitle = (EditText) findViewById(R.id.txtAddReviewTitle);
+        txtDescription = (EditText) findViewById(R.id.txtAddReviewDescription);
+        btnSubmit = (Button) findViewById(R.id.btnAddReviewSubmit);
+        btnSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isValidInputData()) {
+                    new SendReview().execute(
+                            wom.getSelectedPlace().getId(),
+                            User.getInstance().getId(),
+                            txtTitle.getText().toString(),
+                            txtDescription.getText().toString(),
+                            String.valueOf(isLiked)
+                    );
+                }
+            }
+        });
+        btnLike = (LikeButton) findViewById(R.id.btnAddReviewLike);
+        btnLike.setOnLikeListener(new OnLikeListener() {
+            @Override
+            public void liked(LikeButton likeButton) {
+                isLiked = true;
+            }
+
+            @Override
+            public void unLiked(LikeButton likeButton) {
+                isLiked = false;
+            }
+        });
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem menuItem) {
-        if (menuItem.getItemId() == android.R.id.home) {
+        int id = menuItem.getItemId();
+
+        Log.d(TAG, "AddReviewActivity onOptionsItemSelected id: " + String.valueOf(id));
+
+        if (id == android.R.id.home) {
             dialogBackConfirm = new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
@@ -63,6 +118,22 @@ public class AddReviewActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(menuItem);
     }
 
+    private boolean isValidInputData(){
+        boolean isValid = true;
+
+        if (txtTitle.getText().toString().trim().isEmpty()) {
+            txtTitle.setError("You must enter a title!");
+            isValid = false;
+        }
+
+        if (txtDescription.getText().toString().trim().isEmpty()){
+            txtDescription.setError("You must enter a description!");
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
     @Override
     public void onBackPressed() {
         dialogBackConfirm = new DialogInterface.OnClickListener() {
@@ -85,5 +156,74 @@ public class AddReviewActivity extends AppCompatActivity {
                 .setPositiveButton("Yes", dialogBackConfirm)
                 .setNegativeButton("No", dialogBackConfirm)
                 .show();
+    }
+
+
+    public class SendReview extends AsyncTask<String, Void, String> {
+        private static final String TAG = "UpdateExternalDb";
+        public final String SERVER_URL = "http://wom.dmdev.ca/process.php";
+        //public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
+        OkHttpClient client = new OkHttpClient();
+        ProgressDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            dialog = new ProgressDialog(AddReviewActivity.this); // this = YourActivity
+            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            dialog.setMessage("Saving review...");
+            dialog.setIndeterminate(true);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
+
+            try {
+                if (params.length == 5) {
+                    Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
+                    //Log.d(TAG, "json data to send: " + params);
+
+                    //send the user info to the server
+                    RequestBody requestBody = new MultipartBody.Builder()
+                            .setType(MultipartBody.FORM)
+                            .addFormDataPart("action", "add_review")
+                            .addFormDataPart("placeId", params[0])
+                            .addFormDataPart("ownerId", params[1])
+                            .addFormDataPart("title", params[2])
+                            .addFormDataPart("description", params[3])
+                            .addFormDataPart("liked", params[4])
+                            .build();
+
+                    Request request = new Request.Builder()
+                            .url(SERVER_URL)
+                            .post(requestBody)
+                            .build();
+
+                    Response response = client.newCall(request).execute();
+                    Log.d(TAG, "Response: " + response.body().string());
+
+                    response.body().close();
+
+                    return response.body().string();
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "Failed to send HTTP POST request due to: " + ex);
+                ex.printStackTrace();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(String result) {
+            Log.d(TAG, "sending review completed. Result: " + result);
+            dialog.cancel();
+            Toast.makeText(AddReviewActivity.this, "Review saved!", Toast.LENGTH_LONG).show();
+            finish();
+            //showDialog("Downloaded " + result + " bytes");
+        }
     }
 }

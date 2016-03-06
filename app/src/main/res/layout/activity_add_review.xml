@@ -40,7 +40,7 @@
                     <EditText
                         android:textSize="@dimen/large_text"
                         android:textColor="?android:textColorPrimary"
-                        android:id="@+id/add_review_title_hint"
+                        android:id="@+id/txtAddReviewTitle"
                         android:layout_marginTop="0dp"
                         android:layout_marginBottom="0dp"
                         android:paddingTop="0dp"
@@ -67,7 +67,7 @@
                         android:layout_marginBottom="0dp"
                         android:paddingTop="5dp"
                         android:paddingBottom="7dp"
-                        android:id="@+id/Description"
+                        android:id="@+id/txtAddReviewDescription"
                         android:maxLines="3"
                         android:lines="3"
                         android:layout_width="fill_parent"
@@ -83,14 +83,14 @@
                     <com.like.LikeButton
                         app:icon_type="heart"
                         app:icon_size="24dp"
-                        android:id="@id/add_review_like"
+                        android:id="@id/btnAddReviewLike"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
-                        android:layout_toRightOf="@id/add_review_like"
+                        android:layout_toRightOf="@id/btnAddReviewLike"
                         android:text="@string/add_review_like_msg"
                         android:layout_alignParentTop="true"
                         android:layout_alignParentBottom="true"
@@ -99,6 +99,17 @@
             </LinearLayout>
         </LinearLayout>
     </ScrollView>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/toolbar_height"
+        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true">
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="fill_parent"
+            android:id="@+id/btnAddReviewSubmit"
+            android:text="Submit"/>
+    </RelativeLayout>
     <android.support.design.widget.AppBarLayout
         android:id="@+id/add_review_toolbar_layout"
         android:layout_width="match_parent"
@@ -114,18 +125,7 @@
                 android:background="?attr/colorPrimary"
                 android:layout_gravity="end"
                 app:popupTheme="@style/AppTheme.PopupOverlay"
-                android:id="@+id/add_review_toolbar">
-                <ImageView
-                    android:layout_gravity="end|center|top"
-                    android:id="@+id/submission_send_icon"
-                    android:visibility="visible"
-                    android:layout_width="24.0dip"
-                    android:layout_height="24.0dip"
-                    android:layout_marginLeft="12.0dip"
-                    android:layout_marginRight="12.0dip"
-                    android:src="@drawable/ic_send_white_24dp"
-                    android:contentDescription="Send" />
-            </android.support.v7.widget.Toolbar>
+                android:id="@+id/add_review_toolbar"/>
         </RelativeLayout>
     </android.support.design.widget.AppBarLayout>
 </RelativeLayout>

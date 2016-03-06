@@ -38,7 +38,7 @@
                     <EditText
                         android:textSize="@dimen/large_text"
                         android:textColor="?android:textColorPrimary"
-                        android:id="@+id/add_review_title_hint"
+                        android:id="@+id/txtAddReviewTitle"
                         android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
                         android:hint="Title Hint..."
