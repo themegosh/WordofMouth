@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/sliding_content"
     android:orientation="vertical">
 
 
     <!-- Bottom Scrollview content goes in here (location details + review cards) -->
-    <ScrollView
+    <android.support.v4.widget.NestedScrollView
         android:id="@+id/sv"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+        android:layout_height="wrap_content">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -51,13 +50,14 @@
                 android:textSize="@dimen/article_subheading" />
 
         </RelativeLayout>
-    </ScrollView>
 
+    </android.support.v4.widget.NestedScrollView>
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view_reviews"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:scrollbars="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="fill_parent"/>
 
 
 </LinearLayout>

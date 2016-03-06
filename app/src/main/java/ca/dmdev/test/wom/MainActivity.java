@@ -456,6 +456,7 @@ public class MainActivity extends AppCompatActivity implements
 
         reviewsRecycler = (RecyclerView) findViewById(R.id.recycler_view_reviews);
         reviewsRecycler.setHasFixedSize(true);
+        reviewsRecycler.setNestedScrollingEnabled(true);
         reviewsLayoutManager = new LinearLayoutManager(this);
         reviewsRecycler.setLayoutManager(reviewsLayoutManager);
 

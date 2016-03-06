@@ -63,8 +63,8 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewVi
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(ReviewViewHolder rvh, int position) {
-        rvh.title.setText(reviews.get(position).getTitle());
-        rvh.description.setText(reviews.get(position).getDescription());
+        rvh.title.setText(reviews.get(position).getTitle() + " TEST TITLE");
+        rvh.description.setText(reviews.get(position).getDescription() + " TEST DESC");
 
         //get facebook user photo
         Glide

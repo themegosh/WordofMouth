@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
 
     <!-- A CardView that contains a TextView -->
     <android.support.v7.widget.CardView
         xmlns:card_view="http://schemas.android.com/apk/res-auto"
         android:id="@+id/review_card"
-        android:layout_gravity="center"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         card_view:cardCornerRadius="4dp">
 
         <RelativeLayout
@@ -19,13 +19,12 @@
             >
 
             <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:id="@+id/review_photo"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"
-                android:layout_marginRight="16dp"
-                />
+                android:layout_marginRight="16dp" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -34,6 +33,7 @@
                 android:layout_toRightOf="@+id/review_photo"
                 android:layout_alignParentTop="true"
                 android:textSize="30sp"
+                android:text="Title Placeholder"
                 />
 
             <TextView
@@ -42,6 +42,7 @@
                 android:id="@+id/review_description"
                 android:layout_toRightOf="@+id/review_photo"
                 android:layout_below="@+id/review_title"
+                android:text="Description Placeholder"
                 />
 
         </RelativeLayout>
