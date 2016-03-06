@@ -161,7 +161,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     //update facebook data
-    private void updateFacebookData(final AccessToken accessToken){
+    private void updateFacebookData(final AccessToken accessToken) {
 
         final ProgressDialog dialog = new ProgressDialog(this); // this = YourActivity
         dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);

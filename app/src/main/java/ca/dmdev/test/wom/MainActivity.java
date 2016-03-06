@@ -2,6 +2,7 @@ package ca.dmdev.test.wom;
 
 import android.app.Activity;
 import android.app.FragmentManager;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -10,6 +11,7 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
@@ -17,6 +19,8 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Html;
 import android.util.Log;
 import android.view.View;
@@ -61,7 +65,18 @@ import com.google.maps.android.SphericalUtil;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import ca.dmdev.test.wom.acccount.User;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity implements
         NavigationView.OnNavigationItemSelectedListener,
@@ -104,6 +119,10 @@ public class MainActivity extends AppCompatActivity implements
     private AutoCompleteTextView txtSearch;
     private MenuItem btnSearch;
     private MenuItem btnCloseSearch;
+
+    private RecyclerView reviewsRecycler;
+    private ReviewsAdapter reviewsAdapter;
+    private RecyclerView.LayoutManager reviewsLayoutManager;
 
     PlaceAutocompleteAdapter placeAutocompleteAdapter;
     protected GoogleApiClient mGoogleApiClient;
@@ -434,6 +453,39 @@ public class MainActivity extends AppCompatActivity implements
                 }
             }
         });
+
+        reviewsRecycler = (RecyclerView) findViewById(R.id.recycler_view_reviews);
+        reviewsRecycler.setHasFixedSize(true);
+        reviewsLayoutManager = new LinearLayoutManager(this);
+        reviewsRecycler.setLayoutManager(reviewsLayoutManager);
+
+        try {
+
+
+            String strResponse = "[{\"title\":\"The best \",\"description\":\"Something something tacos \",\"liked\":\"true\",\"ownerId\":\"10153533718623305\",\"placeId\":\"ChIJKRhVt4tDK4gRbW_9-0ubMAU\"},{\"title\":\"Wonderful stuff \",\"description\":\"Funny smelling though.... \",\"liked\":\"true\",\"ownerId\":\"10153533718623305\",\"placeId\":\"ChIJKRhVt4tDK4gRbW_9-0ubMAU\"}]";
+            Log.d(TAG, "Response: " + strResponse);
+            JSONArray responseArray = new JSONArray(strResponse);
+
+            List<Review> reviews = new ArrayList<Review>();
+            for (int i = 0; i < responseArray.length(); i++) {
+                JSONObject j = responseArray.getJSONObject(i);
+                reviews.add(new Review(
+                        j.getString("description"),
+                        Boolean.valueOf(j.getString("liked")),
+                        j.getString("ownerId"),
+                        j.getString("placeId"),
+                        j.getString("title")
+                ));
+            }
+
+
+            reviewsAdapter = new ReviewsAdapter(reviews);
+            reviewsRecycler.setAdapter(reviewsAdapter);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
     private void initializePermissions(){
         if (ContextCompat.checkSelfPermission(this,
@@ -692,6 +744,7 @@ public class MainActivity extends AppCompatActivity implements
 
             wom.setSelectedPlace(new PlaceLocation(place));
             updateSlidingToolbar();
+            txtSearch.clearFocus();
 
             locationDescription.setText("ID: " + place.getId() +
                     "\nAddress: " + place.getAddress() +
@@ -700,6 +753,7 @@ public class MainActivity extends AppCompatActivity implements
                     "\nWebsite: " + website);
 
 
+            new GetReviewsForPlaceAsync().execute(place.getId(), User.getInstance().getId());
 
             //anchor the panel
             //slidingPanelLayout.setAnchorPoint(PANEL_ANCHORED);
@@ -735,6 +789,100 @@ public class MainActivity extends AppCompatActivity implements
             places.release();
         }
     };
+
+    public class GetReviewsForPlaceAsync extends AsyncTask<String, Void, List<Review>> {
+        private static final String TAG = "UpdateExternalDb";
+        public final String SERVER_URL = "http://wom.dmdev.ca/process.php";
+        //public final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
+        OkHttpClient client = new OkHttpClient();
+        ProgressDialog dialog;
+
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+
+            dialog = new ProgressDialog(MainActivity.this); // this = YourActivity
+            dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+            dialog.setMessage("Retrieving reviews...");
+            dialog.setIndeterminate(true);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCancelable(false);
+            dialog.show();
+        }
+
+        @Override
+        protected List<Review> doInBackground(String... params) {
+
+            try {
+                if (params.length == 2) {
+                    Log.d(TAG, "==== BEGIN UPLOADING TO WEB SERVER ====");
+                    //Log.d(TAG, "json data to send: " + params);
+
+                    //send the user info to the server
+                    RequestBody requestBody = new MultipartBody.Builder()
+                            .setType(MultipartBody.FORM)
+                            .addFormDataPart("action", "get_reviews")
+                            .addFormDataPart("placeId", params[0])
+                            .addFormDataPart("ownerId", params[1])
+                            .build();
+
+                    Request request = new Request.Builder()
+                            .url(SERVER_URL)
+                            .post(requestBody)
+                            .build();
+
+                    Response response = client.newCall(request).execute();
+                    String strResponse = response.body().string();
+                    Log.d(TAG, "Response: " + strResponse);
+                    JSONArray responseArray = new JSONArray(strResponse);
+
+                    try {
+                        List<Review> reviews = new ArrayList<Review>();
+                        for (int i = 0; i < responseArray.length(); i++) {
+                            JSONObject j = responseArray.getJSONObject(i);
+                            reviews.add(new Review(
+                                    j.getString("description"),
+                                    Boolean.valueOf(j.getString("liked")),
+                                    j.getString("ownerId"),
+                                    j.getString("placeId"),
+                                    j.getString("title")
+                            ));
+                        }
+
+                        return reviews;
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+
+                    response.body().close();
+
+                    //reviewsAdapter
+
+                }
+            } catch (Exception ex) {
+                Log.e(TAG, "Failed to send HTTP POST request due to: " + ex);
+                ex.printStackTrace();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(List<Review> result) {
+            Log.d(TAG, "get_reviews completed. Result: " + result);
+
+            if (reviewsAdapter == null) {
+                reviewsAdapter = new ReviewsAdapter(result);
+            }
+            else
+                reviewsAdapter.updateData(result);
+
+            reviewsRecycler.setAdapter(reviewsAdapter);
+            reviewsAdapter.notifyDataSetChanged();
+            dialog.cancel();
+        }
+    }
 
     /**
      * Called when the Activity could not connect to Google Play services and the auto manager
