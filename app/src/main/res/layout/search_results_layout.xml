@@ -4,6 +4,10 @@
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:paddingTop="2dip"
     android:paddingBottom="2dip"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingEnd="@dimen/activity_horizontal_margin"
+    android:paddingStart="@dimen/activity_horizontal_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:background="#ffffff"
     android:mode="twoLine"
     >

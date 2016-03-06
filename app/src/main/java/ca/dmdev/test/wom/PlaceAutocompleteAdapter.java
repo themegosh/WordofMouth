@@ -72,7 +72,7 @@ public class PlaceAutocompleteAdapter
      */
     public PlaceAutocompleteAdapter(Context context, GoogleApiClient googleApiClient,
                                     LatLngBounds bounds, AutocompleteFilter filter) {
-        super(context, R.layout.search_results_layout, android.R.id.text1);
+        super(context, R.layout.search_results_layout, R.id.txtSearchResultTitle);
         mGoogleApiClient = googleApiClient;
         mBounds = bounds;
         mPlaceFilter = filter;
