@@ -27,11 +27,11 @@
                 android:layout_height="wrap_content"
                 android:animateLayoutChanges="true">
                 <RelativeLayout
-                    android:id="@id/viewDistanceSelector"
+                    android:id="@+id/viewDistanceSelector"
                     android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
-                    android:layout_below="@id/toolbar"
+                    android:layout_below="@+id/toolbar"
                     android:background="?attr/colorPrimary"
                     android:layout_marginLeft="@dimen/activity_vertical_margin"
                     android:layout_marginStart="@dimen/activity_vertical_margin"
@@ -68,7 +68,7 @@
                         android:layout_alignParentRight="true"/>
                 </RelativeLayout>
                 <android.support.v7.widget.Toolbar
-                    android:id="@id/toolbar"
+                    android:id="@+id/toolbar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     android:background="?attr/colorPrimary"

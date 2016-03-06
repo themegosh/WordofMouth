@@ -83,14 +83,14 @@
                     <com.like.LikeButton
                         app:icon_type="heart"
                         app:icon_size="24dp"
-                        android:id="@id/btnAddReviewLike"
+                        android:id="@+id/btnAddReviewLike"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"/>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
-                        android:layout_toRightOf="@id/btnAddReviewLike"
+                        android:layout_toRightOf="@+id/btnAddReviewLike"
                         android:text="@string/add_review_like_msg"
                         android:layout_alignParentTop="true"
                         android:layout_alignParentBottom="true"

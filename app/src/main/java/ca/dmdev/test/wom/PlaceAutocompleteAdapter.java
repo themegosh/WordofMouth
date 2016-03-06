@@ -111,8 +111,8 @@ public class PlaceAutocompleteAdapter
 
         AutocompletePrediction item = getItem(position);
 
-        TextView textView1 = (TextView) row.findViewById(android.R.id.text1);
-        TextView textView2 = (TextView) row.findViewById(android.R.id.text2);
+        TextView textView1 = (TextView) row.findViewById(R.id.txtSearchResultTitle);
+        TextView textView2 = (TextView) row.findViewById(R.id.txtSearchResultAddress);
         textView1.setText(item.getPrimaryText(STYLE_BOLD));
         textView2.setText(item.getSecondaryText(STYLE_BOLD));
 
