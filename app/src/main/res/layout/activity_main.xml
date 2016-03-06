@@ -155,17 +155,10 @@
                         </FrameLayout>
                     </LinearLayout>
 
-                    <!-- Bottom Scrollview content goes in here (location details + review cards) -->
-                    <ScrollView
-                    android:id="@+id/sv"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_weight="1">
 
                         <include layout="@layout/layout_sliding_panel_content" />
 
 
-                    </ScrollView>
                 </LinearLayout>
             </com.sothree.slidinguppanel.SlidingUpPanelLayout>
 

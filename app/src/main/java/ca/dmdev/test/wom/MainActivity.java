@@ -459,32 +459,8 @@ public class MainActivity extends AppCompatActivity implements
         reviewsLayoutManager = new LinearLayoutManager(this);
         reviewsRecycler.setLayoutManager(reviewsLayoutManager);
 
-        try {
-
-
-            String strResponse = "[{\"title\":\"The best \",\"description\":\"Something something tacos \",\"liked\":\"true\",\"ownerId\":\"10153533718623305\",\"placeId\":\"ChIJKRhVt4tDK4gRbW_9-0ubMAU\"},{\"title\":\"Wonderful stuff \",\"description\":\"Funny smelling though.... \",\"liked\":\"true\",\"ownerId\":\"10153533718623305\",\"placeId\":\"ChIJKRhVt4tDK4gRbW_9-0ubMAU\"}]";
-            Log.d(TAG, "Response: " + strResponse);
-            JSONArray responseArray = new JSONArray(strResponse);
-
-            List<Review> reviews = new ArrayList<Review>();
-            for (int i = 0; i < responseArray.length(); i++) {
-                JSONObject j = responseArray.getJSONObject(i);
-                reviews.add(new Review(
-                        j.getString("description"),
-                        Boolean.valueOf(j.getString("liked")),
-                        j.getString("ownerId"),
-                        j.getString("placeId"),
-                        j.getString("title")
-                ));
-            }
-
-
-            reviewsAdapter = new ReviewsAdapter(reviews);
-            reviewsRecycler.setAdapter(reviewsAdapter);
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+        reviewsAdapter = new ReviewsAdapter(new ArrayList<Review>());
+        reviewsRecycler.setAdapter(reviewsAdapter);
 
     }
     private void initializePermissions(){
@@ -744,13 +720,8 @@ public class MainActivity extends AppCompatActivity implements
 
             wom.setSelectedPlace(new PlaceLocation(place));
             updateSlidingToolbar();
-            txtSearch.clearFocus();
 
-            locationDescription.setText("ID: " + place.getId() +
-                    "\nAddress: " + place.getAddress() +
-                    "\nLat/Lang: " + place.getLatLng().toString() +
-                    "\nPhone: " + place.getPhoneNumber() +
-                    "\nWebsite: " + website);
+            locationDescription.setText("Address: " + place.getAddress());
 
 
             new GetReviewsForPlaceAsync().execute(place.getId(), User.getInstance().getId());

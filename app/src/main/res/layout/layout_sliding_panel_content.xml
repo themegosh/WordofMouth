@@ -1,94 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/sliding_bottom_content">
+    android:layout_height="match_parent"
+    android:id="@+id/sliding_content"
+    android:orientation="vertical">
 
-    <RelativeLayout
+
+    <!-- Bottom Scrollview content goes in here (location details + review cards) -->
+    <ScrollView
+        android:id="@+id/sv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/sliding_content_header">
-        <ImageView
-            android:id="@+id/loc_img"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/card_image_height"
-            android:scaleType="centerCrop"
-            android:src="@drawable/placeholder" />
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <TextView
-            android:id="@+id/loc_title"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/card_title_height"
-            android:layout_alignBottom="@+id/loc_img"
-            android:layout_marginLeft="@dimen/md_keylines"
-            android:text=""
-            android:textAppearance="@style/TextAppearance.AppCompat.Title" />
-
-        <TextView
-            android:id="@+id/loc_desc"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/loc_img"
-            android:layout_marginLeft="@dimen/md_keylines"
-            android:layout_marginTop="@dimen/md_keylines"
-            android:layout_marginBottom="@dimen/md_keylines"
-            android:layout_marginRight="@dimen/md_keylines"
-            android:text=""
-            android:ellipsize="end"
-            android:singleLine="false"
-            android:textColor="@color/dark_grey"
-            android:textSize="@dimen/article_subheading" />
+            android:id="@+id/sliding_content_header">
+            <ImageView
+                android:id="@+id/loc_img"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/card_image_height"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder" />
 
-        <Button
-            android:id="@+id/action_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/loc_desc"
-            style="?android:attr/borderlessButtonStyle"
-            android:textColor="?attr/colorPrimary"
-            android:text="Action" />
+            <TextView
+                android:id="@+id/loc_title"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/card_title_height"
+                android:layout_alignBottom="@+id/loc_img"
+                android:layout_marginLeft="@dimen/md_keylines"
+                android:text=""
+                android:textAppearance="@style/TextAppearance.AppCompat.Title" />
 
-        <ImageButton
-            android:id="@+id/share_button"
-            android:layout_width="@dimen/cards_button_width"
-            android:layout_height="@dimen/cards_button_height"
-            android:layout_marginRight="@dimen/md_keylines"
-            android:src="@drawable/ic_gps_fixed_black_24dp"
-            android:layout_below="@+id/loc_desc"
-            android:layout_alignParentRight="true"
-            style="?android:attr/borderlessButtonStyle"
-            android:tint="@color/button_grey" />
+            <TextView
+                android:id="@+id/loc_desc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/loc_img"
+                android:layout_marginLeft="@dimen/md_keylines"
+                android:layout_marginTop="@dimen/md_keylines"
+                android:layout_marginBottom="@dimen/md_keylines"
+                android:layout_marginRight="@dimen/md_keylines"
+                android:text=""
+                android:ellipsize="end"
+                android:singleLine="false"
+                android:textColor="@color/dark_grey"
+                android:textSize="@dimen/article_subheading" />
 
-        <ImageButton
-            android:id="@+id/favorite_button"
-            android:layout_width="@dimen/cards_button_width"
-            android:layout_height="@dimen/cards_button_height"
-            android:layout_marginRight="@dimen/md_keylines"
-            android:src="@drawable/ic_favorite_black_24dp"
-            android:layout_below="@+id/loc_desc"
-            android:layout_toLeftOf="@id/share_button"
-            style="?android:attr/borderlessButtonStyle"
-            android:tint="@color/button_grey" />
-    </RelativeLayout>
+        </RelativeLayout>
+    </ScrollView>
 
-
-
-
-
-    <RelativeLayout
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler_view_reviews"
+        android:scrollbars="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/sliding_content_header"
-        android:id="@+id/sliding_content_body">
+        android:layout_height="wrap_content"/>
 
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/recycler_view_reviews"
-            android:scrollbars="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
 
-    </RelativeLayout>
-
-</RelativeLayout>
+</LinearLayout>
