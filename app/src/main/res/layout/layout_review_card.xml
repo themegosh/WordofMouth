@@ -10,7 +10,9 @@
         android:id="@+id/review_card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        card_view:cardCornerRadius="4dp">
+        card_view:cardElevation="2dp"
+        card_view:cardCornerRadius="4dp"
+        card_view:cardUseCompatPadding="true">
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -19,8 +21,9 @@
             >
 
             <ImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="@dimen/review_image_height"
+                android:layout_height="@dimen/review_image_height"
+                android:scaleType="centerCrop"
                 android:id="@+id/review_photo"
                 android:layout_alignParentLeft="true"
                 android:layout_alignParentTop="true"

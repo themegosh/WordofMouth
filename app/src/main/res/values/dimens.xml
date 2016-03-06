@@ -24,5 +24,6 @@
     <dimen name="cards_button_width">48dp</dimen>
     <dimen name="cards_button_height">48dp</dimen>
     <dimen name="card_image_height">200dp</dimen>
+    <dimen name="review_image_height">50dp</dimen>
     <dimen name="article_subheading">16sp</dimen>
 </resources>
