@@ -66,8 +66,8 @@ public class AddReviewActivity extends AppCompatActivity {
                     new SendReview().execute(
                             wom.getSelectedPlace().getId(),
                             User.getInstance().getId(),
-                            txtTitle.getText().toString(),
-                            txtDescription.getText().toString(),
+                            txtTitle.getText().toString().trim(),
+                            txtDescription.getText().toString().trim(),
                             String.valueOf(isLiked)
                     );
                 }
