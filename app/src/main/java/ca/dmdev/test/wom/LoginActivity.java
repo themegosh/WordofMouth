@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -38,6 +39,8 @@ public class LoginActivity extends AppCompatActivity {
     private Intent mainActivity;
     private JSONObject facebookUser;
     private JSONObject facebookFriends;
+    private View loadingLayout;
+
 
     private static final String TAG = LoginActivity.class.getName();
     private static final int REQUEST_LOGOUT = 1;
@@ -48,15 +51,17 @@ public class LoginActivity extends AppCompatActivity {
         FacebookSdk.sdkInitialize(this.getApplicationContext()); //set up facebook SDK before setContentView!
         callbackManager = CallbackManager.Factory.create(); //callback manager too? seems to crash otherwise
         setContentView(R.layout.activity_login);
-
         wom = (WordOfMouth)getApplication();
-
+        loadingLayout = findViewById(R.id.loading_import);
         //try to get the old access token
         AccessToken accessToken = AccessToken.getCurrentAccessToken();
         //test if this is a returning user,
         if (accessToken != null){
             //update current data with the data on the server
             updateFacebookData(accessToken);
+        }
+        else {
+            loadingLayout.setVisibility(View.GONE);
         }
 
         Button btnLogin = (Button) findViewById(R.id.btnLogin);
@@ -163,14 +168,6 @@ public class LoginActivity extends AppCompatActivity {
     //update facebook data
     private void updateFacebookData(final AccessToken accessToken) {
 
-        final ProgressDialog dialog = new ProgressDialog(this); // this = YourActivity
-        dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-        dialog.setMessage("Loading. Please wait...");
-        dialog.setIndeterminate(true);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.setCancelable(false);
-        dialog.show();
-
         //set up graph request for user info
         GraphRequest userInfo = GraphRequest.newMeRequest(
             accessToken, new GraphRequest.GraphJSONObjectCallback() { //passing access token, and callback?
@@ -201,7 +198,8 @@ public class LoginActivity extends AppCompatActivity {
 
                                         mainActivity = new Intent(getApplicationContext(), MainActivity.class); //prep starting toolbar_menu activity
                                         startActivityForResult(mainActivity, REQUEST_LOGOUT); //start it
-                                        dialog.cancel();
+
+                                        //loadingLayout.setVisibility(View.GONE);
                                     }
                                 }
                             }

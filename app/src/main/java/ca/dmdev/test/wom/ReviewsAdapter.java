@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.util.ExceptionCatchingInputStream;
+import com.like.LikeButton;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,12 +34,14 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewVi
         ImageView photo;
         TextView title;
         TextView description;
+        LikeButton likeButton;
         public ReviewViewHolder(View v) {
             super(v);
             cardView = (CardView) v.findViewById(R.id.review_card);
             photo = (ImageView) v.findViewById(R.id.review_photo);
             title = (TextView) v.findViewById(R.id.review_title);
             description = (TextView) v.findViewById(R.id.review_description);
+            likeButton = (LikeButton) v.findViewById(R.id.review_like);
         }
     }
 
@@ -65,6 +68,8 @@ public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewVi
     public void onBindViewHolder(ReviewViewHolder rvh, int position) {
         rvh.title.setText(reviews.get(position).getTitle());
         rvh.description.setText(reviews.get(position).getDescription());
+        rvh.likeButton.setLiked(reviews.get(position).isLike());
+        rvh.likeButton.setEnabled(false);
 
         //get facebook user photo
         Glide

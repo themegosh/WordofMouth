@@ -4,18 +4,66 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/login_view"
-    tools:context="ca.dmdev.test.wom.LoginActivity">
+    tools:context="ca.dmdev.test.wom.LoginActivity"
+    android:background="@color/colorPrimary">
 
-    <Button
-        android:layout_width="fill_parent"
-        android:layout_height="100dp"
-        android:text="Facebook Login"
-        android:id="@+id/btnLogin"
-        android:textSize="24dp"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <ImageView
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:src="@drawable/world"
+            android:id="@+id/mainLogo"
+            android:layout_below="@+id/logoText"
+            android:layout_alignRight="@+id/logoText"
+            android:layout_alignEnd="@+id/logoText"
+            android:layout_marginTop="20dp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Word of Mouth"
+            android:id="@+id/logoText"
+            android:textColor="@color/white"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="50dp" />
+
+        <Button
+            android:layout_width="300dp"
+            android:layout_height="80dp"
+            android:id="@+id/btnLogin"
+            android:background="@color/facebook"
+            android:textColor="@color/white"
+            android:padding="16dp"
+            android:textSize="20sp"
+            android:text="Facebook Login"
+            android:drawableLeft="@drawable/fb_logo_md"
+            android:layout_marginBottom="96dp"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Share and discover new places with friends"
+            android:id="@+id/textView"
+            android:textColor="@android:color/white"
+            android:layout_below="@+id/mainLogo"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="20dp" />
+
+    </RelativeLayout>
+
+
+
+
+
+    <include
+        android:id="@+id/loading_import"
+        layout="@layout/layout_loading"/>
 
 </RelativeLayout>
 

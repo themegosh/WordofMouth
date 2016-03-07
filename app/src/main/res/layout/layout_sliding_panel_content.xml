@@ -52,6 +52,15 @@
         </RelativeLayout>
 
     </android.support.v4.widget.NestedScrollView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_gravity="center_vertical"
+        android:textSize="18sp"
+        android:text="Reviews"
+        android:background="@color/material_grey_300" />
+
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recycler_view_reviews"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
