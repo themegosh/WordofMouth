@@ -495,7 +495,7 @@ public class MainActivity extends AppCompatActivity implements
                     null);
             txtSearch.setAdapter(placeAutocompleteAdapter);
 
-            //lblPlaceTitle = (TextView) findViewById(R.id.lblPlaceTitle);
+            lblPlaceTitle = (TextView) findViewById(R.id.loc_title);
         } else {
             Log.d(TAG, "initializePlacesApi() wom.getLastLocation() == null");
         }
@@ -710,7 +710,7 @@ public class MainActivity extends AppCompatActivity implements
             imm.hideSoftInputFromWindow(txtSearch.getWindowToken(), 0);
 
             CharSequence placeName = place.getName();
-            //lblPlaceTitle.setText(placeName);
+            lblPlaceTitle.setText(placeName);
             //formatPlaceDetails(getResources(), place.getName(), place.getId(), place.getAddress(), place.getPhoneNumber(),place.getWebsiteUri()));
             String website = "";
             if (place.getWebsiteUri() != null)
@@ -722,7 +722,7 @@ public class MainActivity extends AppCompatActivity implements
             wom.setSelectedPlace(new PlaceLocation(place));
             updateSlidingToolbar();
 
-            locationDescription.setText("Address: " + place.getAddress());
+            locationDescription.setText(place.getAddress());
 
 
             new GetReviewsForPlaceAsync().execute(place.getId(), User.getInstance().getId());
